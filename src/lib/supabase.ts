@@ -5,7 +5,7 @@ export const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Validate environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  throw new Error('Missing Supabase environment variables. Please check your .env file.');
 }
 
 // Validate Supabase URL format
@@ -15,38 +15,12 @@ try {
   throw new Error(`Invalid Supabase URL format: ${supabaseUrl}`);
 }
 
-// Enhanced retry configuration
+// Simplified retry configuration for better reliability
 const MAX_RETRIES = 3;
 const BASE_DELAY = 1000;
-const MAX_DELAY = 5000;
-const FETCH_TIMEOUT = 30000;
+const FETCH_TIMEOUT = 15000;
 
-// Check if URL is accessible
-async function isUrlAccessible(url: string): Promise<boolean> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-    try {
-      const response = await fetch(`${url}/rest/v1/`, {
-        method: 'HEAD',
-        signal: controller.signal,
-        headers: {
-          'apikey': supabaseAnonKey,
-          'Content-Type': 'application/json'
-        }
-      });
-      return response.ok;
-    } finally {
-      clearTimeout(timeoutId);
-    }
-  } catch (error) {
-    console.warn('URL accessibility check failed:', error);
-    return false;
-  }
-}
-
-// Enhanced fetch with exponential backoff, jitter, and timeout
+// Enhanced fetch with better error handling and retry logic
 async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   let lastError: Error | null = null;
   
@@ -56,17 +30,6 @@ async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Pro
     new URL(url);
   } catch (e) {
     throw new Error(`Invalid URL: ${url}`);
-  }
-
-  // Basic online check
-  if (!navigator.onLine) {
-    throw new Error('No internet connection available');
-  }
-
-  // Check if Supabase URL is accessible before proceeding
-  const isAccessible = await isUrlAccessible(supabaseUrl);
-  if (!isAccessible) {
-    throw new Error(`Unable to connect to Supabase at ${supabaseUrl}. Please check your configuration and try again.`);
   }
 
   // Initialize headers with the required Supabase headers
@@ -95,16 +58,15 @@ async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Pro
           credentials: 'same-origin'
         });
 
-        // Check for specific HTTP status codes that warrant retries
         if (!response.ok) {
           const status = response.status;
           
           // Don't retry client errors (except 429 - too many requests)
           if (status >= 400 && status < 500 && status !== 429) {
-            throw new Error(`Client error: ${status}`);
+            throw new Error(`HTTP error! status: ${status}`);
           }
           
-          // For 429 (rate limit), use the Retry-After header if available
+          // For 429, use the Retry-After header if available
           if (status === 429) {
             const retryAfter = response.headers.get('Retry-After');
             if (retryAfter) {
@@ -113,8 +75,6 @@ async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Pro
               continue;
             }
           }
-          
-          throw new Error(`HTTP error! status: ${status}`);
         }
 
         return response;
@@ -124,52 +84,36 @@ async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Pro
     } catch (error) {
       console.warn(`Fetch attempt ${attempt} failed:`, error);
       
-      // Enhanced error handling
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          lastError = new Error('Request timeout - server took too long to respond');
-        } else if (error.name === 'TypeError') {
-          if (error.message.includes('Failed to fetch')) {
-            lastError = new Error(`Network error - Unable to connect to Supabase at ${supabaseUrl}. Please check your configuration and try again.`);
-          } else {
-            lastError = error;
-          }
-        } else if (error.message.includes('NetworkError')) {
-          lastError = new Error('Network error - check your connection and try again');
+          lastError = new Error('Request timed out. Please check your internet connection.');
         } else if (!navigator.onLine) {
-          lastError = new Error('No internet connection');
+          lastError = new Error('No internet connection. Please check your network settings.');
+        } else if (error.message.includes('Failed to fetch')) {
+          lastError = new Error(`Unable to connect to Supabase. Please verify your project configuration and try again.`);
         } else {
           lastError = error;
         }
       } else {
-        lastError = new Error('Unknown error occurred');
+        lastError = new Error('An unknown error occurred while connecting to Supabase.');
       }
 
-      // Don't retry if:
-      // 1. It's the last attempt
-      // 2. It's a client error (except rate limiting)
-      // 3. It's a validation error
-      // 4. There's no internet connection
+      // Don't retry on final attempt or specific errors
       if (
         attempt === MAX_RETRIES ||
-        (error instanceof Error && error.message.startsWith('Client error') && !error.message.includes('429')) ||
-        error instanceof Error && error.message.startsWith('Invalid URL') ||
+        (error instanceof Error && error.message.includes('HTTP error!')) ||
         !navigator.onLine
       ) {
         throw lastError;
       }
 
-      // Calculate delay with exponential backoff and jitter
-      const delay = Math.min(
-        BASE_DELAY * Math.pow(2, attempt - 1) + Math.random() * BASE_DELAY,
-        MAX_DELAY
-      );
-      
+      // Simple exponential backoff
+      const delay = BASE_DELAY * Math.pow(2, attempt - 1);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
   
-  throw lastError;
+  throw lastError || new Error('Failed to connect to Supabase after multiple attempts.');
 }
 
 // Create Supabase client with enhanced configuration
@@ -179,9 +123,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: true,
     storageKey: 'willup-auth'
-  },
-  headers: {
-    'X-Client-Info': 'willup-web'
   },
   global: {
     fetch: fetchWithRetry,
