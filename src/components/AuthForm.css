@@ -1,0 +1,94 @@
+.auth-container {
+  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+  border-radius: 1.5rem;
+  box-shadow: 
+    20px 20px 60px #d9d9d9,
+    -20px -20px 60px #ffffff,
+    inset 2px 2px 4px rgba(255, 255, 255, 0.8),
+    inset -2px -2px 4px rgba(70, 70, 70, 0.1);
+}
+
+.brand-title {
+  background: linear-gradient(145deg, #0047AB, #D4AF37);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+  box-shadow: 
+    inset 2px 2px 5px #d1d1d1,
+    inset -2px -2px 5px #ffffff;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.input-field:focus {
+  outline: none;
+  box-shadow: 
+    inset 3px 3px 6px #d1d1d1,
+    inset -3px -3px 6px #ffffff,
+    0 0 0 3px rgba(0, 71, 171, 0.1);
+}
+
+.submit-button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(145deg, #0047AB, #D4AF37);
+  color: white;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 
+    6px 6px 12px #d1d1d1,
+    -6px -6px 12px #ffffff;
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 
+    8px 8px 16px #d1d1d1,
+    -8px -8px 16px #ffffff;
+}
+
+.submit-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 
+    4px 4px 8px #d1d1d1,
+    -4px -4px 8px #ffffff;
+}
+
+.submit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background: linear-gradient(145deg, #fee2e2, #fecaca);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+  box-shadow: 
+    inset 2px 2px 5px rgba(254, 202, 202, 0.5),
+    inset -2px -2px 5px rgba(255, 255, 255, 0.5);
+}
+
+.mode-switch-button {
+  color: #0047AB;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.mode-switch-button:hover {
+  color: #003d91;
+  background: linear-gradient(145deg, #f5f5f5, #ffffff);
+  box-shadow: 
+    2px 2px 4px #d1d1d1,
+    -2px -2px 4px #ffffff;
+}

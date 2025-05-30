@@ -1,0 +1,61 @@
+.progress-bar-container {
+  @apply absolute left-0 h-0.5 bg-gray-200;
+  width: calc(100% - 8px);
+  left: 4px;
+}
+
+.progress-bar-fill {
+  @apply absolute left-0 h-0.5 transition-all duration-500;
+  background: linear-gradient(90deg, #0047AB, #D4AF37);
+  max-width: calc(100% - 8px);
+}
+
+.step-indicator {
+  @apply w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all duration-300;
+  cursor: pointer;
+  position: relative;
+}
+
+.step-indicator-completed {
+  @apply text-white;
+  background: linear-gradient(145deg, #0047AB, #D4AF37);
+}
+
+.step-indicator-incomplete {
+  @apply bg-white border-2 border-gray-200;
+}
+
+.next-step-button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(145deg, #0047AB, #D4AF37);
+  color: white;
+  font-weight: 500;
+  margin-top: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 
+    6px 6px 12px #d1d1d1,
+    -6px -6px 12px #ffffff;
+}
+
+.next-step-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    8px 8px 16px #d1d1d1,
+    -8px -8px 16px #ffffff;
+}
+
+.next-step-button:active {
+  transform: translateY(0);
+  box-shadow: 
+    4px 4px 8px #d1d1d1,
+    -4px -4px 8px #ffffff;
+}
+
+.step-indicator-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: #e5e5e5;
+  border-color: #d1d1d1;
+}

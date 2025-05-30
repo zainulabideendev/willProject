@@ -1,0 +1,155 @@
+LAST WILL AND TESTAMENT
+of
+{{FULL_NAME}}
+
+PREAMBLE
+I, {{FULL_NAME}}, of {{ADDRESS}}, holding ID number {{ID_NUMBER}}, being of sound and disposing mind, do hereby declare this to be my Last Will and Testament. I revoke all previous wills and codicils made by me.
+
+1. DECLARATION OF CAPACITY
+I declare that I am of sound mind and fully understand the nature and consequences of this document. I am making this Will freely and voluntarily, without coercion, duress, or undue influence.
+
+2. DEFINITIONS
+Unless the context indicates otherwise:
+- “Spouse” means the person I am legally married to at the time of my death, whether under civil, customary, or religious law.
+- “Executor” refers to the person or persons appointed in Section 5.
+- “Minor children” means any of my children under the age of 18 at the time of my death.
+
+3. FAMILY DETAILS
+If married at the time of death, my spouse is:
+- Name: {{SPOUSE_FULL_NAME}}
+- ID Number: {{SPOUSE_ID_NUMBER}}
+- Address: {{SPOUSE_ADDRESS}}
+
+4. REVOCATION OF PREVIOUS WILLS
+This document is my sole and binding Last Will and Testament. I revoke all prior wills and codicils made by me.
+
+5. APPOINTMENT OF EXECUTOR(S)
+Primary Executor:
+- Name: {{EXECUTOR_FULL_NAME}}
+- ID Number: {{EXECUTOR_ID_NUMBER}}
+- Address: {{executor_address}}
+
+I hereby nominate, constitute and appoint {{PARTNER_FIRM_NAME}} (Registration Number: {{PARTNER_FIRM_REG_NUMBER}}) to serve as the Executor and Administrator of my estate.
+
+My Executor shall have full powers and authority to administer and distribute my estate in accordance with this Will and the laws of South Africa.
+
+6. SPECIFIC BEQUESTS AND DISTRIBUTION OF ASSETS
+
+Schedule A: Specific Bequests
+- To {{beneficiary_name_1}}
+  ID: {{beneficiary_id_1}}
+  Address: {{beneficiary_address_1}}
+  Bequests:
+    • Have {{specific_item_1a}} of {{asset_name}}
+
+Any remaining tangible personal property not itemized shall be distributed equally among the above beneficiaries or as my Executor sees fit.
+
+7. RESIDUARY ESTATE
+All remaining parts of my estate not specifically disposed of above are bequeathed to:
+- Name: {{residuary_beneficiary}}
+- ID Number: {{residuary_id}}
+- Address: {{residuary_beneficiary_address}}
+
+8. GUARDIANSHIP OF MINOR CHILDREN
+If I leave behind minor children, I appoint:
+
+Primary Guardian:
+- Name: {{GUARDIAN_FULL_NAME}}
+- ID Number: {{GUARDIAN_ID_NUMBER}}
+- Address: {{GUARDIAN_ADDRESS}}
+
+Alternate Guardian:
+- Name: {{alternate_guardian_name}}
+- ID Number: {{alternate_guardian_id}}
+- Address: {{alternate_guardian_address}}
+
+9. PAYMENT OF DEBTS AND ADMINISTRATION
+I direct that all my just debts, funeral expenses, and costs related to the administration of my estate be paid from my estate as soon as practicable after my death.
+
+10. NO CONTEST CLAUSE
+If any beneficiary under this Will contests or challenges the validity or any provision of this Will, they shall forfeit their entire inheritance. Their share shall revert to the residuary estate.
+
+11. SEVERABILITY CLAUSE
+If any provision of this Will is declared invalid or unenforceable, the remainder shall remain valid and enforceable to the fullest extent allowed by law.
+
+12. BURIAL & LAST WISHES
+These preferences are not binding but serve as a guide to my loved ones:
+- I wish to be: {{BURIAL_TYPE}}
+- Preferred funeral home or location: {{preferred_burial_site}}
+- Special instructions: {{MEMORIAL_MESSAGE}}
+- Additional last wishes or messages: {{LAST_MESSAGE}}
+
+
+13. DIGITAL ASSETS
+I authorize my Executor to access, manage, and dispose of my digital property, including but not limited to email accounts, social media profiles, cloud storage, financial platforms, and cryptocurrency wallets.
+
+I have designated legacy contacts or memorialisation preferences on relevant platforms (such as Facebook, Google, and others). I direct my Executor to assist in executing these digital legacy preferences in accordance with platform-specific guidelines and my wishes.
+
+
+14. PET GUARDIANSHIP
+If I have pets at the time of my death, I appoint:
+- Pet Guardian Name: {{pet_guardian_name}}
+- Pet Guardian ID: {{pet_guardian_id}}
+- Pet Guardian Address: {{pet_guardian_address}}
+I direct that R{{pet_care_amount}} be set aside from my estate for the care of my pet(s), to be used at the discretion of the Pet Guardian and overseen by my Executor.
+
+15. CHARITABLE DONATION
+I direct that R{{donation_amount}} be donated to:
+- Charity Name: {{charity_name}}
+- NPO Registration Number: {{npo_number}}
+
+16. TRUST FOR MINORS OR VULNERABLE BENEFICIARIES
+Any portion of my estate bequeathed to a minor or person lacking legal capacity shall be held in trust and managed for their benefit until they reach age 21 or are otherwise capable.
+
+17. SIGNATURE AND EXECUTION
+Signed at {{place_of_will}} on {{date_of_will}}, by me, the Testator, in the presence of the undersigned witnesses who signed in my presence and in the presence of each other.
+
+Testator's Signature: ___________________________
+Name: {{testator_name}}
+Date: {{date_of_will}}
+
+18. WITNESS ATTESTATION
+We declare that the Testator signed this Will in our presence and appeared of sound mind and under no undue influence.
+
+Witness 1:
+  Name: {{witness1_name}}
+  Address: {{witness1_address}}
+  Signature: ____________________
+  Date: {{witness1_date}}
+
+Witness 2:
+  Name: {{witness2_name}}
+  Address: {{witness2_address}}
+  Signature: ____________________
+  Date: {{witness2_date}}
+
+GENERAL PROVISIONS
+1. SIMULTANEOUS DEATH CLAUSE
+In the event that my spouse and I die simultaneously or under circumstances where it is uncertain who died first, I direct that I be deemed to have predeceased my spouse for the purposes of distributing my estate.
+
+2. DISCRETIONARY POWERS OF EXECUTOR
+My Executor shall have full discretion to make decisions related to the administration and distribution of my estate, including but not limited to selling assets, engaging professionals, settling liabilities, and resolving ambiguities in this Will, without prior court approval unless legally required.
+
+3. FORGIVENESS OF DEBTS
+Any debts owed to me by my beneficiaries at the time of my death, whether documented or informal, shall be forgiven entirely and shall not reduce or offset any inheritance due to them under this Will.
+
+4. SURVIVORSHIP PERIOD CLAUSE
+A beneficiary must survive me by at least 14 days to inherit under this Will. If they do not, their share shall pass to the alternate beneficiary named herein or otherwise form part of the residuary estate.
+
+5. ALTERNATIVE BENEFICIARY CLAUSE
+If any named beneficiary dies before me or disclaims their inheritance, their share shall pass to {{alternate_beneficiary_name}}, or otherwise form part of the residuary estate.
+
+6. ASSET VALUATION INSTRUCTION
+I direct that all significant assets, including but not limited to real property and business interests, be independently valued by a qualified appraiser appointed by my Executor. The cost of such valuation shall be borne by the estate.
+
+7. INTER-VIVOS GIFTS CLAUSE
+Any gifts made by me during my lifetime are not to be treated as advances on any inheritance unless specifically documented as such in writing.
+
+8. BURIAL EXPENSE REIMBURSEMENT CLAUSE
+Any individual who incurs reasonable funeral or burial expenses on my behalf shall be reimbursed by my estate before any distributions are made to beneficiaries.
+
+9. LANGUAGE OF INTERPRETATION CLAUSE
+This Will shall be interpreted according to its plain meaning and the intentions of the Testator. If ambiguity arises, the Executor shall resolve such ambiguity in good faith based on the overall structure and intent of this Will.
+
+10. EXECUTOR COMMUNICATION INSTRUCTIONS
+I request that my Executor provide a summary of this Will and my estate plan to all primary beneficiaries within 30 days of my death. This summary should include key distributions, digital assets, any trusts or obligations, and next steps for beneficiaries. This clause serves to promote transparency, reduce confusion, and support efficient estate administration.

@@ -1,0 +1,62 @@
+.beneficiary-toggle {
+  background: linear-gradient(145deg, #0047AB, #D4AF37);
+  border-radius: 9999px;
+  padding: 0.25rem;
+  display: flex;
+  width: 100%;
+  max-width: 400px;
+  margin: 2rem auto;
+  box-shadow:
+    6px 6px 12px rgba(0, 0, 0, 0.15),
+    -6px -6px 12px rgba(255, 255, 255, 0.15),
+    inset 2px 2px 4px rgba(0, 0, 0, 0.15),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.15);
+}
+
+.toggle-item {
+  padding: 0.5rem;
+  flex: 1;
+  min-width: 0;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  justify-content: center;
+  gap: 0.25rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .toggle-item {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.75rem;
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+}
+
+.toggle-item.active {
+  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+  color: #2D2D2D;
+  margin: 0.25rem;
+  box-shadow:
+    4px 4px 8px rgba(0, 0, 0, 0.15),
+    -4px -4px 8px rgba(255, 255, 255, 0.15),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.8),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.toggle-item:not(.active):hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 1px 1px 2px rgba(0, 0, 0, 0.1),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.1);
+}

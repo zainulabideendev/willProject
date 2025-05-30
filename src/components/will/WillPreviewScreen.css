@@ -1,0 +1,126 @@
+.will-preview-container {
+  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 
+    6px 6px 12px #d1d1d1,
+    -6px -6px 12px #ffffff;
+}
+
+.will-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.will-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.will-title-icon {
+  color: #0047AB;
+}
+
+.will-title-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2D2D2D;
+}
+
+.download-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(145deg, #0047AB, #D4AF37);
+  color: white;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 
+    4px 4px 8px #d1d1d1,
+    -4px -4px 8px #ffffff;
+}
+
+.download-button:hover {
+  transform: scale(1.05);
+  box-shadow: 
+    6px 6px 12px #d1d1d1,
+    -6px -6px 12px #ffffff;
+}
+
+.will-content {
+  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 
+    inset 2px 2px 5px #d1d1d1,
+    inset -2px -2px 5px #ffffff;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.will-content pre {
+  white-space: pre-wrap;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #2D2D2D;
+}
+
+.disclaimer {
+  background-color: #FEF3C7;
+  border-left: 4px solid #F59E0B;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0.25rem;
+}
+
+.disclaimer-text {
+  font-size: 0.875rem;
+  color: #92400E;
+}
+
+.review-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(145deg, #0047AB, #D4AF37);
+  color: white;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 
+    6px 6px 12px #d1d1d1,
+    -6px -6px 12px #ffffff;
+}
+
+.review-button:hover {
+  transform: scale(1.02);
+  box-shadow: 
+    8px 8px 16px #d1d1d1,
+    -8px -8px 16px #ffffff;
+}
+
+.reviewed-badge {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(145deg, #10B981, #059669);
+  color: white;
+  font-weight: 500;
+  box-shadow: 
+    6px 6px 12px #d1d1d1,
+    -6px -6px 12px #ffffff;
+}

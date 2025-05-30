@@ -1,0 +1,36 @@
+1.Whenever you're making fixes or refactoring the code file, do not change the UI or flows in the process. 
+
+2.Use this brand kit through throughout the project for design:
+
+Willup Brand Kit V1:
+
+Light Mode:
+ • Background: A subtle, professional gradient that elegantly blends Royal Blue (#0047AB) and Metallic Gold (#D4AF37) in a very soft, refined transition, overlaid on a base of Soft White (#F5EBDD) to light cream.
+ • Primary Colors:
+   – Rich Charcoal: A deep, sophisticated gray for a strong, professional foundation (Example: #2D2D2D)
+   – Bold Cobalt Blue (Royal Blue): The main accent to evoke trust, reliability, and confidence (Example: #0047AB)
+ • Secondary Colors:
+   – Soft White cream gradient: A soft, inviting background tone that adds warmth and balance
+   – Warm Gold Accents: Used sparingly to hint at legacy and premium service (Example: #D4AF37)
+ • Typography:
+   – Headings & Body Text: Use an Apple-inspired font stack:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif
+ • Neumorphism, Gradients & Hover Interactions:
+   – UI elements feature subtle raised and inset shadows with gradient overlays on buttons and key elements to add depth and visual interest.
+   – Sophisticated hover interactions are incorporated with smooth transitions, subtle scaling, color shifts, and refined shadow adjustments.
+
+Dark Mode:
+ • Background: A gradient from Dark Charcoal (#121212) to a slightly lighter shade (#1C1C1C) serves as the base, with selective accent overlays using Royal Blue and Metallic Gold for key interactive elements.
+ • Primary Colors:
+   – Rich Charcoal: Adjusted for contrast as the base
+   – Bold Cobalt Blue (Royal Blue): Remains the main accent (Example: #0047AB)
+ • Secondary Colors:
+   – Warm Beige/Sand: Used as complementary elements to add warmth (Example: #F5EBDD)
+   – Warm Gold Accents: Continues to hint at legacy and premium service (Example: #D4AF37)
+ • Typography:
+   – Primary Text: Light Gray (#EEEEEE) for high legibility on dark backgrounds, using the same Apple-inspired font stack.
+ • Neumorphism, Gradients & Hover Interactions:
+   – Adapted with refined darker shadows and gradient backgrounds to maintain clarity and depth in low-light settings.
+   – Interactive elements also include sophisticated hover interactions to enhance the user experience.
+Interactive Pop-Up Modals:
+ Use interactive pop-up modals with a blurred background wherever applicable (e.g., for input validation, confirmation dialogs, editing details).Wh

@@ -1,0 +1,39 @@
+@@ .. @@
+ .beneficiary-toggle {
+   background: linear-gradient(145deg, #0047AB, #D4AF37);
+   border-radius: 9999px;
+-  padding: 0.25rem;
++  padding: 0.2rem;
+   display: flex;
+   width: 100%;
+   max-width: 400px;
+-  margin: 2rem auto;
++  margin: 1.5rem auto;
+   box-shadow:
+     6px 6px 12px rgba(0, 0, 0, 0.15),
+     -6px -6px 12px rgba(255, 255, 255, 0.15),
+@@ .. @@
+ 
+ .toggle-item {
+-  padding: 0.5rem;
++  padding: 0.4rem;
+   flex: 1;
+   min-width: 0;
+   border-radius: 9999px;
+-  font-size: 0.7rem;
++  font-size: 0.65rem;
+   font-weight: 500;
+   color: rgba(255, 255, 255, 0.8);
+   transition: all 0.3s ease;
+@@ .. @@
+ 
+ @media (min-width: 640px) {
+   .toggle-item {
+-    padding: 0.75rem 1.5rem;
+-    font-size: 0.75rem;
++    padding: 0.6rem 1.25rem;
++    font-size: 0.7rem;
+     flex-direction: row;
+     gap: 0.5rem;
+   }
+ }
