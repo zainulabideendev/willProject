@@ -4,8 +4,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, A11y } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
+import * as Tooltip from '@radix-ui/react-tooltip';
 import './WelcomeModal.css';
-import { X } from 'lucide-react';
 
 const steps = [
   {
@@ -52,10 +52,25 @@ interface WelcomeModalProps {
 
 export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const [isVisible, setIsVisible] = React.useState(isOpen);
+  const [currentStep, setCurrentStep] = React.useState(0);
+  const [allStepsViewed, setAllStepsViewed] = React.useState(false);
+  const totalSteps = steps.length;
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   React.useEffect(() => {
     if (isOpen) setIsVisible(true);
   }, [isOpen]);
+
+  React.useEffect(() => {
+    // Mark all steps as viewed when we reach the last step
+    if (currentStep === totalSteps - 1) {
+      setAllStepsViewed(true);
+    }
+  }, [currentStep, totalSteps]);
 
   const handleAnimationComplete = () => {
     if (!isOpen) setIsVisible(false);
@@ -82,48 +97,74 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
        className="relative w-full max-w-xl mx-auto overflow-hidden rounded-t-2xl sm:rounded-2xl modal-container"
       >
         <div className="p-4 sm:p-6">
-         <h2 className="text-2xl font-bold mb-2 text-center modal-title">
+          <div className="flex justify-center mb-2">
+            <h2 className="text-2xl font-bold text-center modal-title">
             Welcome to Willup
-          </h2>
+            </h2>
+          </div>
           <p className="text-[#2D2D2D]/60 text-center mb-6">
             Let's guide you through creating your will
           </p>
 
-          <Swiper
-            modules={[Pagination, A11y]}
-            spaceBetween={30}
-            slidesPerView={1}
-            pagination={{ 
-              clickable: true,
-              bulletActiveClass: 'swiper-pagination-bullet-active'
-            }}
-            className="h-[300px] sm:h-[350px]"
-          >
-            {steps.map((step, index) => (
-              <SwiperSlide key={index}>
-                <div className="flex flex-col items-center justify-center h-full p-4 sm:p-6 text-center">
-                  <div 
-                   className="text-4xl mb-6 p-4 rounded-full step-icon-container"
-                  >
-                    {step.icon}
+          {isClient && (
+            <Swiper
+              modules={[Pagination, A11y]}
+              spaceBetween={30}
+              slidesPerView={1}
+              pagination={{ 
+                clickable: true,
+                bulletActiveClass: 'swiper-pagination-bullet-active'
+              }}
+              onSlideChange={(swiper) => setCurrentStep(swiper.activeIndex)}
+              className="h-[300px] sm:h-[350px]"
+            >
+              {steps.map((step, index) => (
+                <SwiperSlide key={index}>
+                  <div className="flex flex-col items-center justify-center h-full p-4 sm:p-6 text-center">
+                    <div 
+                     className="text-4xl mb-6 p-4 rounded-full step-icon-container"
+                    >
+                      {step.icon}
+                    </div>
+                    <h3 className="text-xl font-semibold mb-4 text-[#2D2D2D]">
+                      {step.title}
+                    </h3>
+                    <p className="text-[#2D2D2D]/60">
+                      {step.description}
+                    </p>
                   </div>
-                  <h3 className="text-xl font-semibold mb-4 text-[#2D2D2D]">
-                    {step.title}
-                  </h3>
-                  <p className="text-[#2D2D2D]/60">
-                    {step.description}
-                  </p>
-                </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          )}
 
-          <button
-            onClick={onClose}
-           className="w-full mt-4 py-3 px-4 text-white rounded-lg transition-all get-started-button"
-          >
-            Get Started
-          </button>
+          <Tooltip.Provider>
+            <Tooltip.Root>
+              <Tooltip.Trigger asChild>
+                <button
+                  onClick={allStepsViewed ? onClose : undefined}
+                  className="w-full mt-4 py-3 px-4 text-white rounded-lg transition-all get-started-button"
+                  style={{
+                    opacity: allStepsViewed ? 1 : 0.6,
+                    cursor: allStepsViewed ? 'pointer' : 'not-allowed'
+                  }}
+                >
+                  Get Started
+                </button>
+              </Tooltip.Trigger>
+              {!allStepsViewed && (
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="bg-[#2D2D2D] text-white text-xs px-2 py-1 rounded"
+                    sideOffset={5}
+                  >
+                    Please read through all steps before proceeding
+                    <Tooltip.Arrow className="fill-[#2D2D2D]" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              )}
+            </Tooltip.Root>
+          </Tooltip.Provider>
         </div>
       </motion.div>
     </motion.div>

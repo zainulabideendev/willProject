@@ -1,9 +1,10 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Loader2, Baby as BabyIcon, Users, Plus, Trash2, UserCircle, BadgeCheck, User, Calendar, Mail, Phone, FileText } from 'lucide-react';
+import { ArrowLeft, Loader2, Baby as BabyIcon, Users, Plus, Trash2, UserCircle, BadgeCheck, User, Calendar, Mail, Phone, FileText, Edit, Save } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { useProfile, useUpdateProfile, useEstateScore } from '../lib/hooks';
+import { StepProgressBar } from './StepProgressBar';
 import { Child } from '../lib/types';
 import { supabase } from '../lib/supabase';
 import './ChildrenScreen.css';
@@ -16,6 +17,7 @@ interface ChildData {
   cellphone: string;
   id_number: string;
   date_of_birth: string;
+  address: string;
 }
 
 interface ChildrenScreenProps {
@@ -29,14 +31,16 @@ const defaultChildData: ChildData = {
   email: '',
   cellphone: '',
   id_number: '',
-  date_of_birth: ''
+  date_of_birth: '',
+  address: ''
 };
 
 const ChildFormFields: React.FC<{
   childData: ChildData;
   onChange: (updates: Partial<ChildData>) => void;
   required: boolean;
-}> = ({ childData, onChange, required }) => (
+  disabled?: boolean;
+}> = ({ childData, onChange, required, disabled = false }) => (
   <div className="space-y-6">
     <div className="input-group">
       <label className="block text-sm font-medium text-[#2D2D2D] mb-1">
@@ -48,6 +52,11 @@ const ChildFormFields: React.FC<{
           value={childData.title}
           onChange={(e) => onChange({ title: e.target.value })}
           className="input-field pl-10"
+          disabled={disabled}
+          style={{
+            opacity: disabled ? 0.7 : 1,
+            cursor: disabled ? 'not-allowed' : 'pointer'
+          }}
           required={required}
         >
           <option value="">Select a title</option>
@@ -70,6 +79,11 @@ const ChildFormFields: React.FC<{
           onChange={(e) => onChange({ first_names: e.target.value })}
           className="input-field pl-10"
           placeholder="Enter child's first names"
+          disabled={disabled}
+          style={{
+            opacity: disabled ? 0.7 : 1,
+            cursor: disabled ? 'not-allowed' : 'auto'
+          }}
           required={required}
         />
       </div>
@@ -87,6 +101,11 @@ const ChildFormFields: React.FC<{
           onChange={(e) => onChange({ last_name: e.target.value })}
           className="input-field pl-10"
           placeholder="Enter child's last name"
+          disabled={disabled}
+          style={{
+            opacity: disabled ? 0.7 : 1,
+            cursor: disabled ? 'not-allowed' : 'auto'
+          }}
           required={required}
         />
       </div>
@@ -103,6 +122,11 @@ const ChildFormFields: React.FC<{
           value={childData.date_of_birth}
           onChange={(e) => onChange({ date_of_birth: e.target.value })}
           className="input-field pl-10"
+          disabled={disabled}
+          style={{
+            opacity: disabled ? 0.7 : 1,
+            cursor: disabled ? 'not-allowed' : 'auto'
+          }}
           required={required}
         />
       </div>
@@ -120,6 +144,11 @@ const ChildFormFields: React.FC<{
           onChange={(e) => onChange({ email: e.target.value })}
           className="input-field pl-10"
           placeholder="Enter child's email address"
+          disabled={disabled}
+          style={{
+            opacity: disabled ? 0.7 : 1,
+            cursor: disabled ? 'not-allowed' : 'auto'
+          }}
           required={required}
         />
       </div>
@@ -137,6 +166,11 @@ const ChildFormFields: React.FC<{
           onChange={(e) => onChange({ cellphone: e.target.value })}
           className="input-field pl-10"
           placeholder="Enter child's cellphone number"
+          disabled={disabled}
+          style={{
+            opacity: disabled ? 0.7 : 1,
+            cursor: disabled ? 'not-allowed' : 'auto'
+          }}
           required={required}
         />
       </div>
@@ -154,6 +188,32 @@ const ChildFormFields: React.FC<{
           onChange={(e) => onChange({ id_number: e.target.value })}
           className="input-field pl-10"
           placeholder="Enter child's ID number"
+          disabled={disabled}
+          style={{
+            opacity: disabled ? 0.7 : 1,
+            cursor: disabled ? 'not-allowed' : 'auto'
+          }}
+          required={required}
+        />
+      </div>
+    </div>
+
+    <div className="input-group">
+      <label className="block text-sm font-medium text-[#2D2D2D] mb-1">
+        Address
+      </label>
+      <div className="relative">
+        <MapPin className="absolute left-3 top-3 w-4 h-4 text-[#2D2D2D]/60" />
+        <textarea
+          value={childData.address || ''}
+          onChange={(e) => onChange({ address: e.target.value })}
+          className="input-field pl-10 min-h-[80px]"
+          placeholder="Enter child's address"
+          disabled={disabled}
+          style={{
+            opacity: disabled ? 0.7 : 1,
+            cursor: disabled ? 'not-allowed' : 'auto'
+          }}
           required={required}
         />
       </div>
@@ -166,6 +226,7 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
   const { updateProfile, loading: updateLoading } = useUpdateProfile();
   const [previousScreen, setPreviousScreen] = React.useState<string>('marriage-status');
   const { score, loading: scoreLoading } = useEstateScore(profile?.id);
+  const [editMode, setEditMode] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [hasChildren, setHasChildren] = React.useState<boolean | null>(null);
   const [existingChildren, setExistingChildren] = React.useState<Child[]>([]);
@@ -182,6 +243,9 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
         : 'life-partner'
       );
       fetchChildData();
+      // For new users (who haven't completed profile setup), always stay in edit mode
+      // For existing users (who have completed profile setup), start in view mode
+      setEditMode(!profile.profile_setup_complete || false);
     }
   }, [profile]);
 
@@ -206,7 +270,8 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
           email: child.email || '',
           cellphone: child.phone || '',
           id_number: child.id_number || '',
-          date_of_birth: child.date_of_birth || ''
+          date_of_birth: child.date_of_birth || '',
+          address: child.address || ''
         })));
       } else {
         setExistingChildren([]);
@@ -219,12 +284,19 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
     }
   };
 
-  const handleNext = async () => {
+  const handleSave = async () => {
     if (!profile || hasChildren === null) return;
 
     setSaving(true);
 
     try {
+      const updates: any = {
+        has_children: hasChildren,
+        profile_setup_complete: true
+      };
+
+      await updateProfile(profile.id, updates);
+
       if (!hasChildren) {
         const { error: deleteError } = await supabase
           .from('children')
@@ -232,16 +304,7 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
           .eq('profile_id', profile.id);
 
         if (deleteError) throw deleteError;
-        setChildrenData([defaultChildData]);
-        setExistingChildren([]);
       }
-
-      const updates: any = {
-        has_children: hasChildren,
-        profile_setup_complete: true
-      };
-
-      await updateProfile(profile.id, updates);
 
       if (hasChildren) {
         if (existingChildren.length > 0) {
@@ -264,6 +327,7 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
             email: child.email,
             phone: child.cellphone,
             id_number: child.id_number,
+            address: child.address,
             order: i
           };
 
@@ -292,13 +356,27 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
         if (scoreError) throw scoreError;
       }
       
-      toast.success('Step 1 completed! Profile details have been saved successfully.');
-      onNavigate('dashboard');
+      toast.success('Step 1 completed! Profile has been set up successfully.', {
+        duration: 3000
+      });
+      setEditMode(false);
     } catch (error) {
       console.error('Failed to update children status:', error);
-      toast.error('Failed to complete step. Please try again.');
+      toast.error('Failed to save children details. Please try again.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleNext = async () => {
+    onNavigate('dashboard');
+  };
+
+  const handleEditSaveToggle = async () => {
+    if (editMode) {
+      await handleSave();
+    } else {
+      setEditMode(true);
     }
   };
 
@@ -309,7 +387,7 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
   }, [childrenData.length]);
 
   const handleDeleteChild = (indexToDelete: number) => {
-    setChildrenData(prev => prev.filter((_, index) => index !== indexToDelete));
+    setChildrenData(prev => prev.filter((_, i) => i !== indexToDelete));
     if (activeChildIndex >= indexToDelete) {
       setActiveChildIndex(Math.max(0, activeChildIndex - 1));
     }
@@ -337,6 +415,16 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
   return (
     <div className="space-y-6">
       <Toaster position="top-right" expand={false} richColors />
+      <StepProgressBar 
+        currentStep={2}
+        steps={['Profile', 'Marriage', 'Children']}
+        onStepClick={(step) => {
+          if (step === 0) onNavigate('profile');
+          if (step === 1) onNavigate('marriage-status');
+          if (step === 2) onNavigate('children');
+        }}
+      />
+      
       <div className="flex items-center mb-6">
         <button
           onClick={() => onNavigate(previousScreen)}
@@ -344,7 +432,22 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
         >
           <ArrowLeft className="w-6 h-6 text-[#2D2D2D]" />
         </button>
-        <h1 className="text-lg font-semibold text-[#2D2D2D] ml-2">Children</h1>
+        <div className="flex items-center justify-between flex-1">
+          <h1 className="text-lg font-semibold text-[#2D2D2D] ml-2">Children</h1>
+          {/* Only show edit/save button for users who have completed profile setup */}
+          {profile?.profile_setup_complete && (
+            <button
+              onClick={handleEditSaveToggle}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              {editMode ? (
+                <Save className="w-5 h-5 text-[#0047AB]" />
+              ) : (
+                <Edit className="w-5 h-5 text-[#0047AB]" />
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="children-status-container">
@@ -355,14 +458,24 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
 
         <div className="options-container">
           <button
+            disabled={!editMode}
             className={`option-button ${hasChildren === true ? 'selected' : ''}`}
             onClick={() => setHasChildren(true)}
+            style={{
+              opacity: !editMode ? 0.7 : 1,
+              cursor: !editMode ? 'not-allowed' : 'pointer'
+            }}
           >
             Yes
           </button>
           <button
+            disabled={!editMode}
             className={`option-button ${hasChildren === false ? 'selected' : ''}`}
             onClick={() => setHasChildren(false)}
+            style={{
+              opacity: !editMode ? 0.7 : 1,
+              cursor: !editMode ? 'not-allowed' : 'pointer'
+            }}
           >
             No
           </button>
@@ -394,8 +507,13 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
                   <Tooltip.Root>
                     <Tooltip.Trigger asChild>
                       <button
+                        disabled={!editMode}
                         onClick={handleAddChild}
                         className="add-child-button"
+                        style={{
+                          opacity: !editMode ? 0.7 : 1,
+                          cursor: !editMode ? 'not-allowed' : 'pointer'
+                        }}
                       >
                         <Plus className="w-4 h-4" />
                       </button>
@@ -417,17 +535,27 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
                 {childrenData.map((_, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <button
+                      disabled={!editMode}
                       onClick={() => setActiveChildIndex(index)}
                       className={`child-pill ${activeChildIndex === index ? 'active' : ''}`}
+                      style={{
+                        opacity: !editMode ? 0.7 : 1,
+                        cursor: !editMode ? 'not-allowed' : 'pointer'
+                      }}
                     >
                       Child {index + 1}
                       {showDeleteButtons && index > 0 && (
                         <button
+                          disabled={!editMode}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteChild(index);
                           }}
                           className={`delete-child-button ${showDeleteButtons ? 'visible' : ''}`}
+                          style={{
+                            opacity: !editMode ? 0.7 : 1,
+                            cursor: !editMode ? 'not-allowed' : 'pointer'
+                          }}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -441,6 +569,7 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
                 childData={childrenData[activeChildIndex]}
                 onChange={(updates) => updateChildData(activeChildIndex, updates)}
                 required={hasChildren}
+                disabled={!editMode}
               />
             </div>
           </motion.div>
@@ -448,14 +577,14 @@ export function ChildrenScreen({ onNavigate }: ChildrenScreenProps) {
       </AnimatePresence>
 
       <button
-        onClick={handleNext}
-        disabled={hasChildren === null || updateLoading || saving}
+        onClick={handleSave}
+        disabled={hasChildren === null || updateLoading || saving || (editMode && !hasChildren && !childrenData[0].first_names)}
         className="next-button"
       >
         {(updateLoading || saving) ? (
           <Loader2 className="w-5 h-5 animate-spin mx-auto" />
         ) : (
-          'Complete Step 1'
+          profile?.profile_setup_complete ? 'Back to Dashboard' : 'Complete Step 1'
         )}
       </button>
     </div>

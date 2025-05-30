@@ -6,10 +6,11 @@ import { toast } from 'sonner';
 
 interface LastMessageProps {
   profileId: string;
+  editMode?: boolean;
   message?: string;
 }
 
-export function LastMessage({ profileId, message: initialMessage }: LastMessageProps) {
+export function LastMessage({ profileId, editMode = true, message: initialMessage }: LastMessageProps) {
   // Initialize state from localStorage or prop
   const [message, setMessage] = React.useState(() => {
     const savedMessage = localStorage.getItem(`last-message-${profileId}`);
@@ -93,24 +94,27 @@ export function LastMessage({ profileId, message: initialMessage }: LastMessageP
         <textarea
           value={message}
           onChange={(e) => handleMessageChange(e.target.value)}
+          disabled={!editMode}
           className="w-full min-h-[200px] p-4 rounded-lg text-sm resize-none"
           placeholder="Write your personal message here..."
           style={{
             background: 'linear-gradient(145deg, #ffffff, #f5f5f5)',
-            boxShadow: 'inset 2px 2px 5px #d1d1d1, inset -2px -2px 5px #ffffff'
+            boxShadow: 'inset 2px 2px 5px #d1d1d1, inset -2px -2px 5px #ffffff',
+            opacity: !editMode ? 0.7 : 1,
+            cursor: !editMode ? 'not-allowed' : 'auto'
           }}
         />
       </div>
 
       <button
         onClick={handleSaveMessage}
-        disabled={saving}
+        disabled={saving || !editMode}
         className="w-full mt-6 py-2 px-4 text-white rounded-lg transition-all text-sm"
         style={{
           background: 'linear-gradient(145deg, #0047AB, #D4AF37)',
           boxShadow: '6px 6px 12px #d1d1d1, -6px -6px 12px #ffffff',
-          opacity: saving ? 0.5 : 1,
-          cursor: saving ? 'not-allowed' : 'pointer'
+          opacity: (saving || !editMode) ? 0.5 : 1,
+          cursor: (saving || !editMode) ? 'not-allowed' : 'pointer'
         }}
       >
         {saving ? (

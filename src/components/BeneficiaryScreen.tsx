@@ -1,5 +1,6 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProfile, useUpdateProfile } from '../lib/hooks';
 import { useBeneficiaries } from '../hooks/useBeneficiaries';
@@ -15,6 +16,9 @@ import { ResidueSection } from './beneficiary/ResidueSection';
 import { CompletionValidator } from './beneficiary/CompletionValidator';
 import { FamilyMember } from '../lib/types';
 import './BeneficiaryScreen.css';
+
+// Import Edit and Save icons
+import { Edit, Save } from 'lucide-react';
 
 interface BeneficiaryScreenProps {
   onNavigate: (screen: string) => void;
@@ -42,6 +46,7 @@ function BeneficiaryScreen({ onNavigate }: BeneficiaryScreenProps) {
   const [activeSection, setActiveSection] = React.useState<NavSection>('beneficiaries');
   const [addMode, setAddMode] = React.useState<AddMode>('family');
   const { profile, loading: profileLoading, refetchProfile } = useProfile();
+  const [editMode, setEditMode] = React.useState(false);
   const [localLoading, setLocalLoading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   
@@ -74,55 +79,6 @@ function BeneficiaryScreen({ onNavigate }: BeneficiaryScreenProps) {
     onRefetch: refetchBeneficiaries,
     clearCache: clearBeneficiariesCache
   });
-
-  const [manualForm, setManualForm] = React.useState({
-    title: '',
-    first_names: '',
-    last_name: '',
-    id_number: '',
-    relationship: '',
-    phone: ''
-  });
-
-  const handleAddManualBeneficiary = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!profile) return;
-
-    try {
-      setLocalLoading(true);
-      
-      const beneficiary = {
-        profile_id: profile.id,
-        ...manualForm,
-        is_family_member: false
-      };
-
-      const { error } = await supabase
-        .from('beneficiaries')
-        .insert(beneficiary);
-
-      if (error) throw error;
-
-      setManualForm({
-        title: '',
-        first_names: '',
-        last_name: '',
-        id_number: '',
-        relationship: '',
-        phone: ''
-      });
-
-      toast.success('Beneficiary added successfully');
-      clearBeneficiariesCache();
-      await refetchBeneficiaries();
-      await refetchProfile();
-    } catch (error) {
-      console.error('Error adding beneficiary:', error);
-      toast.error('Failed to add beneficiary');
-    } finally {
-      setLocalLoading(false);
-    }
-  };
 
   const handleAllocationChange = (assetId: string, beneficiaryId: string, percentage: number) => {
     // For spouse/partner, use the type as the key instead of the ID
@@ -415,9 +371,52 @@ function BeneficiaryScreen({ onNavigate }: BeneficiaryScreenProps) {
     }
   }, [profile, communityPropertyModalShown]);
 
+  // Set initial edit mode based on whether user has completed this step
+  React.useEffect(() => {
+    if (profile) {
+      setEditMode(!profile.beneficiaries_chosen);
+    }
+  }, [profile]);
+
+  const handleEditSaveToggle = async () => {
+    if (editMode) {
+      // If in edit mode, save changes
+      if (activeSection === 'beneficiaries' && addMode === 'manual') {
+        // Trigger save event for manual beneficiary form
+        window.dispatchEvent(new CustomEvent('beneficiary-save-changes'));
+      }
+      setEditMode(false);
+    } else {
+      // If not in edit mode, switch to edit mode
+      setEditMode(true);
+    }
+  };
+
   return (
     <div className="space-y-6" id="beneficiary-top">
-      <BeneficiaryHeader onNavigate={onNavigate} />
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => onNavigate('dashboard')}
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <ArrowLeft className="w-6 h-6 text-[#2D2D2D]" />
+        </button>
+        <div className="flex items-center justify-between flex-1">
+          <h1 className="text-lg font-semibold text-[#2D2D2D] ml-2">Add Beneficiaries</h1>
+          {profile?.beneficiaries_chosen && (
+            <button
+              onClick={handleEditSaveToggle}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              {editMode ? (
+                <Save className="w-5 h-5 text-[#0047AB]" />
+              ) : (
+                <Edit className="w-5 h-5 text-[#0047AB]" />
+              )}
+            </button>
+          )}
+        </div>
+      </div>
 
       <BeneficiaryNav
         activeSection={activeSection}
@@ -436,12 +435,12 @@ function BeneficiaryScreen({ onNavigate }: BeneficiaryScreenProps) {
           familyMembers={familyMembers}
           selectedMembers={selectedMembers}
           manualBeneficiaries={manualBeneficiaries}
-          manualForm={manualForm}
+          profileId={profile?.id || ''}
+          editMode={editMode}
           loading={loading || localLoading}
-          onManualFormChange={(updates) => setManualForm(prev => ({ ...prev, ...updates }))}
           onAddFamilyMember={handleAddFamilyMember}
           onDeleteBeneficiary={handleBeneficiaryDelete}
-          onManualSubmit={handleAddManualBeneficiary}
+          onBeneficiarySaved={refetchBeneficiaries}
         />
       )}
 
@@ -451,6 +450,7 @@ function BeneficiaryScreen({ onNavigate }: BeneficiaryScreenProps) {
           selectedMembers={selectedMembers}
           manualBeneficiaries={manualBeneficiaries}
           assetAllocations={assetAllocations}
+          editMode={editMode}
           unsavedChanges={unsavedChanges}
           loading={loading || localLoading}
           onAllocationChange={handleAllocationChange}
@@ -463,6 +463,7 @@ function BeneficiaryScreen({ onNavigate }: BeneficiaryScreenProps) {
           selectedMembers={selectedMembers}
           manualBeneficiaries={manualBeneficiaries}
           residueAllocations={residueAllocations}
+          editMode={editMode}
           loading={loading || localLoading}
           onResidueChange={handleResidueAllocationChange}
           onSaveResidue={handleSaveResidueAllocations}
@@ -472,7 +473,19 @@ function BeneficiaryScreen({ onNavigate }: BeneficiaryScreenProps) {
       <CompletionValidator
         profile={profile}
       >
-        {(isValid) => (
+        {(isValid) => profile?.beneficiaries_chosen ? (
+          <button
+            onClick={() => onNavigate('dashboard')}
+            disabled={!isValid || saving}
+            className="complete-step-button"
+          >
+            {saving ? (
+              <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+            ) : (
+              'Back to Dashboard'
+            )}
+          </button>
+        ) : (
           <button
             onClick={handleCompleteStep}
             disabled={!isValid || saving}

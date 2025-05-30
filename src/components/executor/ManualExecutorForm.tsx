@@ -7,9 +7,10 @@ import { toast } from 'sonner';
 interface ManualExecutorFormProps {
   profileId: string;
   onExecutorSaved: () => void;
+  editMode: boolean;
 }
 
-export function ManualExecutorForm({ profileId, onExecutorSaved }: ManualExecutorFormProps) {
+export function ManualExecutorForm({ profileId, onExecutorSaved, editMode }: ManualExecutorFormProps) {
   const [saving, setSaving] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [executorsData, setExecutorsData] = React.useState([{
@@ -26,6 +27,9 @@ export function ManualExecutorForm({ profileId, onExecutorSaved }: ManualExecuto
   const [savedExecutors, setSavedExecutors] = React.useState<Record<number, string>>({});
   const [hasPartnerFirm, setHasPartnerFirm] = React.useState(false);
   const [executorCount, setExecutorCount] = React.useState(0);
+
+  // Add state to track unsaved changes
+  const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
 
   React.useEffect(() => {
     const checkPartnerFirm = async () => {
@@ -110,6 +114,9 @@ export function ManualExecutorForm({ profileId, onExecutorSaved }: ManualExecuto
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profileId) return;
+    
+    // Don't proceed if not in edit mode
+    if (!editMode) return;
 
     try {
       setSaving(true);
@@ -188,7 +195,8 @@ export function ManualExecutorForm({ profileId, onExecutorSaved }: ManualExecuto
       if (savedExecutors[index]) {
         const { error } = await supabase
           .from('executors')
-          .delete();
+          .delete()
+          .eq('id', savedExecutors[index]);
 
         if (error) throw error;
 
@@ -235,14 +243,11 @@ export function ManualExecutorForm({ profileId, onExecutorSaved }: ManualExecuto
             <Tooltip.Trigger asChild>
               <button
                 onClick={handleAddExecutor}
-                disabled={hasPartnerFirm}
+                disabled={hasPartnerFirm || !editMode}
                 className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:transform hover:scale-105"
                 style={{
-                  background: 'linear-gradient(145deg, #0047AB, #D4AF37)',
-                  boxShadow: '4px 4px 8px #d1d1d1, -4px -4px 8px #ffffff',
-                  color: 'white',
-                  opacity: hasPartnerFirm ? 0.5 : 1,
-                  cursor: hasPartnerFirm ? 'not-allowed' : 'pointer'
+                  opacity: (hasPartnerFirm || !editMode) ? 0.5 : 1,
+                  cursor: (hasPartnerFirm || !editMode) ? 'not-allowed' : 'pointer'
                 }}
               >
                 <Plus className="w-4 h-4" />
@@ -264,29 +269,30 @@ export function ManualExecutorForm({ profileId, onExecutorSaved }: ManualExecuto
       <div className="flex gap-2 mb-6 flex-wrap">
         {executorsData.map((_, index) => (
           <div key={index} className="flex items-center gap-2">
-            <button
+            <button 
+              disabled={!editMode}
               onClick={() => setActiveExecutorIndex(index)}
-              className={`px-6 py-2.5 rounded-full transition-all ${
-                activeExecutorIndex === index
-                  ? 'bg-gradient-to-r from-[#0047AB] to-[#D4AF37] text-white'
-                  : 'bg-gradient-to-r from-[#ffffff] to-[#f5f5f5]'
-              }`}
+              className={`child-pill ${activeExecutorIndex === index ? 'active' : ''}`}
               style={{
-                boxShadow: activeExecutorIndex === index
-                  ? '6px 6px 12px #d1d1d1, -6px -6px 12px #ffffff'
-                  : 'inset 2px 2px 5px #d1d1d1, inset -2px -2px 5px #ffffff'
+                opacity: !editMode ? 0.7 : 1,
+                cursor: !editMode ? 'not-allowed' : 'pointer'
               }}
             >
-              <span className="text-sm">Executor {index + 1}</span>
+              Executor {index + 1}
               {showDeleteButtons && index > 0 && (
                 <button
+                  disabled={!editMode}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleRemoveExecutor(index);
                   }}
-                  className="ml-2 p-1 rounded-full hover:bg-black/10 transition-colors text-white"
+                  className={`delete-child-button ${showDeleteButtons ? 'visible' : ''}`}
+                  style={{
+                    opacity: !editMode ? 0.7 : 1,
+                    cursor: !editMode ? 'not-allowed' : 'pointer'
+                  }}
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               )}
             </button>
@@ -307,9 +313,11 @@ export function ManualExecutorForm({ profileId, onExecutorSaved }: ManualExecuto
                 const newData = [...executorsData];
                 newData[activeExecutorIndex] = { ...newData[activeExecutorIndex], title: e.target.value };
                 setExecutorsData(newData);
+                setHasUnsavedChanges(true);
               }}
               className="input-field pl-10"
               required
+              disabled={!editMode}
             >
               <option value="">Select a title</option>
               <option value="Mr">Mr</option>
@@ -327,15 +335,21 @@ export function ManualExecutorForm({ profileId, onExecutorSaved }: ManualExecuto
           <div className="relative">
             <BadgeCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#2D2D2D]/60" />
             <input
+              disabled={!editMode}
               type="text"
               value={executorsData[activeExecutorIndex]?.first_names || ''}
               onChange={(e) => {
                 const newData = [...executorsData];
                 newData[activeExecutorIndex] = { ...newData[activeExecutorIndex], first_names: e.target.value };
                 setExecutorsData(newData);
+                setHasUnsavedChanges(true);
               }}
               className="input-field pl-10"
               placeholder="Enter executor's first names"
+              style={{
+                opacity: !editMode ? 0.7 : 1,
+                cursor: !editMode ? 'not-allowed' : 'auto'
+              }}
               required
             />
           </div>
@@ -348,15 +362,21 @@ export function ManualExecutorForm({ profileId, onExecutorSaved }: ManualExecuto
           <div className="relative">
             <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#2D2D2D]/60" />
             <input
+              disabled={!editMode}
               type="text"
               value={executorsData[activeExecutorIndex]?.last_name || ''}
               onChange={(e) => {
                 const newData = [...executorsData];
                 newData[activeExecutorIndex] = { ...newData[activeExecutorIndex], last_name: e.target.value };
                 setExecutorsData(newData);
+                setHasUnsavedChanges(true);
               }}
               className="input-field pl-10"
               placeholder="Enter executor's last name"
+              style={{
+                opacity: !editMode ? 0.7 : 1,
+                cursor: !editMode ? 'not-allowed' : 'auto'
+              }}
               required
             />
           </div>
@@ -369,15 +389,21 @@ export function ManualExecutorForm({ profileId, onExecutorSaved }: ManualExecuto
           <div className="relative">
             <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#2D2D2D]/60" />
             <input
+              disabled={!editMode}
               type="text"
               value={executorsData[activeExecutorIndex]?.id_number || ''}
               onChange={(e) => {
                 const newData = [...executorsData];
                 newData[activeExecutorIndex] = { ...newData[activeExecutorIndex], id_number: e.target.value };
                 setExecutorsData(newData);
+                setHasUnsavedChanges(true);
               }}
               className="input-field pl-10"
               placeholder="Enter executor's ID number"
+              style={{
+                opacity: !editMode ? 0.7 : 1,
+                cursor: !editMode ? 'not-allowed' : 'auto'
+              }}
               required
             />
           </div>
@@ -390,15 +416,21 @@ export function ManualExecutorForm({ profileId, onExecutorSaved }: ManualExecuto
           <div className="relative">
             <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#2D2D2D]/60" />
             <input
+              disabled={!editMode}
               type="tel"
               value={executorsData[activeExecutorIndex]?.phone || ''}
               onChange={(e) => {
                 const newData = [...executorsData];
                 newData[activeExecutorIndex] = { ...newData[activeExecutorIndex], phone: e.target.value };
                 setExecutorsData(newData);
+                setHasUnsavedChanges(true);
               }}
               className="input-field pl-10"
               placeholder="Enter executor's phone number"
+              style={{
+                opacity: !editMode ? 0.7 : 1,
+                cursor: !editMode ? 'not-allowed' : 'auto'
+              }}
               required
             />
           </div>
@@ -411,15 +443,21 @@ export function ManualExecutorForm({ profileId, onExecutorSaved }: ManualExecuto
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#2D2D2D]/60" />
             <input
+              disabled={!editMode}
               type="email"
               value={executorsData[activeExecutorIndex]?.email || ''}
               onChange={(e) => {
                 const newData = [...executorsData];
                 newData[activeExecutorIndex] = { ...newData[activeExecutorIndex], email: e.target.value };
                 setExecutorsData(newData);
+                setHasUnsavedChanges(true);
               }}
               className="input-field pl-10"
               placeholder="Enter executor's email address"
+              style={{
+                opacity: !editMode ? 0.7 : 1,
+                cursor: !editMode ? 'not-allowed' : 'auto'
+              }}
               required
             />
           </div>
@@ -432,28 +470,39 @@ export function ManualExecutorForm({ profileId, onExecutorSaved }: ManualExecuto
           <div className="relative">
             <MapPin className="absolute left-3 top-3 w-4 h-4 text-[#2D2D2D]/60" />
             <textarea
+              disabled={!editMode}
               value={executorsData[activeExecutorIndex]?.address || ''}
               onChange={(e) => {
                 const newData = [...executorsData];
                 newData[activeExecutorIndex] = { ...newData[activeExecutorIndex], address: e.target.value };
                 setExecutorsData(newData);
+                setHasUnsavedChanges(true);
               }}
               className="input-field pl-10 min-h-[100px]"
               placeholder="Enter executor's address"
+              style={{
+                opacity: !editMode ? 0.7 : 1,
+                cursor: !editMode ? 'not-allowed' : 'auto'
+              }}
               required
             />
           </div>
         </div>
 
+        {savedExecutors[activeExecutorIndex] ? (
         <button
-          type="submit"
-          disabled={saving || hasPartnerFirm}
+          type="button"
+          disabled={saving || hasPartnerFirm || !editMode}
+          onClick={(e) => {
+            e.preventDefault();
+            handleRemoveExecutor(activeExecutorIndex);
+          }}
           className="w-full mt-6 py-2 px-4 text-white rounded-lg transition-all text-sm"
           style={{
-            background: 'linear-gradient(145deg, #0047AB, #D4AF37)',
+            background: '#ef4444',
             boxShadow: '6px 6px 12px #d1d1d1, -6px -6px 12px #ffffff',
-            opacity: (saving || hasPartnerFirm) ? 0.5 : 1,
-            cursor: (saving || hasPartnerFirm) ? 'not-allowed' : 'pointer'
+            opacity: (saving || hasPartnerFirm || !editMode) ? 0.5 : 1,
+            cursor: (saving || hasPartnerFirm || !editMode) ? 'not-allowed' : 'pointer'
           }}
         >
           {saving ? (
@@ -461,10 +510,52 @@ export function ManualExecutorForm({ profileId, onExecutorSaved }: ManualExecuto
           ) : hasPartnerFirm ? (
             'Partner Firm Selected'
           ) : (
-            savedExecutors[activeExecutorIndex] ? 'Update Executor' : 'Add Executor'
+            'Remove Executor'
           )}
         </button>
+        ) : (
+        <button
+          type="submit"
+          disabled={saving || hasPartnerFirm || !editMode || !hasUnsavedChanges}
+          className="w-full mt-6 py-2 px-4 text-white rounded-lg transition-all text-sm"
+          style={{
+            background: 'linear-gradient(145deg, #0047AB, #D4AF37)',
+            boxShadow: '6px 6px 12px #d1d1d1, -6px -6px 12px #ffffff',
+            opacity: (saving || hasPartnerFirm || !editMode || !hasUnsavedChanges) ? 0.5 : 1,
+            cursor: (saving || hasPartnerFirm || !editMode || !hasUnsavedChanges) ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {saving ? (
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto" />
+          ) : hasPartnerFirm ? (
+            'Partner Firm Selected'
+          ) : (
+            'Add Executor'
+          )}
+        </button>
+        )}
       </form>
     </div>
   );
+  
+  // Listen for save events from parent component
+  React.useEffect(() => {
+    const handleSaveEvent = () => {
+      if (editMode) {
+        // Trigger form submission programmatically
+        if (hasUnsavedChanges) {
+          handleSubmit(new Event('submit') as React.FormEvent);
+          setHasUnsavedChanges(false);
+        } else if (savedExecutors[activeExecutorIndex]) {
+          // If we have a saved executor but no changes, still consider it a success
+          toast.success('Executor details are up to date');
+        }
+      }
+    };
+    
+    window.addEventListener('executor-save-changes', handleSaveEvent);
+    return () => {
+      window.removeEventListener('executor-save-changes', handleSaveEvent);
+    };
+  }, [hasUnsavedChanges, editMode, executorsData, activeExecutorIndex]);
 }

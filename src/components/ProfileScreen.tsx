@@ -1,8 +1,9 @@
 import React from 'react';
-import { ArrowLeft, Loader2, UserCircle, BadgeCheck, User, Mail, Phone, FileText, MapPin } from 'lucide-react';
+import { ArrowLeft, Loader2, UserCircle, BadgeCheck, User, Mail, Phone, FileText, MapPin, Edit, Save } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { supabase } from '../lib/supabase';
 import { useProfile, useUpdateProfile } from '../lib/hooks';
+import { StepProgressBar } from './StepProgressBar';
 import './ProfileScreen.css'; 
 
 interface ProfileScreenProps {
@@ -13,6 +14,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   const { profile, loading: profileLoading } = useProfile();
   const { updateProfile, loading: updateLoading } = useUpdateProfile();
   const [user, setUser] = React.useState<any>(null);
+  const [editMode, setEditMode] = React.useState(true);
   const [formData, setFormData] = React.useState({
     first_names: '',
     last_name: '',
@@ -38,8 +40,8 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   React.useEffect(() => {
     if (profile) {
       setFormData({
-        first_names: (profile.full_name || '').split(' ').slice(0, -1).join(' ') || '',
-        last_name: (profile.full_name || '').split(' ').pop() || '',
+        first_names: profile.full_name ? profile.full_name.split(' ').slice(0, -1).join(' ') : '',
+        last_name: profile.full_name ? profile.full_name.split(' ').pop() || '' : '',
         email: profile.email || user?.email || '',
         cellphone: profile.phone || '',
         id_number: profile.id_number || '',
@@ -52,38 +54,64 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile) return;
+        
+    // Navigate to the next screen
+    onNavigate('marriage-status');
+  };
 
-    try {
-      const full_name = `${formData.first_names} ${formData.last_name}`.trim();
-      await updateProfile(profile.id, {
-        full_name,
-        email: formData.email,
-        phone: formData.cellphone,
-        id_number: formData.id_number,
-        title: formData.title,
-        address: formData.address,
-        profile_setup_complete: true
-      });
-      
-      // Save to localStorage as a backup
-      localStorage.setItem('profile-address', formData.address);
-      
-      toast.success('Profile details saved successfully!');
-      onNavigate('marriage-status');
-    } catch (error) {
-      console.error('Failed to update profile:', error);
-      toast.error('Failed to save profile details. Please try again.');
+  const handleEditSaveToggle = async () => {
+    if (editMode) {
+      // If in edit mode, save changes
+      try {
+        if (!profile) return;
+       
+        const full_name = `${formData.first_names} ${formData.last_name}`.trim();
+        await updateProfile(profile.id, {
+          full_name,
+          email: formData.email,
+          phone: formData.cellphone,
+          id_number: formData.id_number,
+          title: formData.title,
+          address: formData.address
+        });
+        
+        localStorage.setItem('profile-address', formData.address);
+        toast.success('Profile details saved successfully!');
+        setEditMode(false);
+      } catch (error) {
+        console.error('Failed to update profile:', error);
+        toast.error('Failed to save profile details. Please try again.');
+      }
+    } else {
+      // If not in edit mode, switch to edit mode
+     setEditMode(true);
     }
   };
 
   // Load address from localStorage if not available in profile
   React.useEffect(() => {
-    if (!profile?.address) {
+    // Only load from localStorage if the user has completed profile setup before
+    // This prevents pre-filling for new users
+    if (profile?.profile_setup_complete && !profile.address && formData.address === '') {
       const savedAddress = localStorage.getItem('profile-address');
       if (savedAddress) {
         setFormData(prev => ({
           ...prev,
           address: savedAddress
+        }));
+      }
+    }
+    
+    // Set initial edit mode based on profile completion status
+    if (profile) {
+      const isNewUser = !profile.profile_setup_complete;
+      setEditMode(isNewUser);
+      
+      // For new users, ensure address is empty
+      if (isNewUser) {
+        setFormData(prev => ({
+          ...prev,
+          address: ''
         }));
       }
     }
@@ -100,14 +128,50 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   return (
     <div className="space-y-6">
       <Toaster position="top-right" expand={false} richColors />
+      <StepProgressBar 
+        currentStep={0}
+        steps={['Profile', 'Marriage', 'Children']}
+        onStepClick={(step) => {
+          if (profile?.profile_setup_complete) {
+            if (step === 0) onNavigate('profile');
+            if (step === 1) onNavigate('marriage-status');
+            if (step === 2) onNavigate('children');
+          } else {
+            toast.error('Please complete your profile first');
+          }
+        }}
+      />
+      
       <div className="flex items-center mb-6">
         <button
-          onClick={() => onNavigate('dashboard')}
+          onClick={() => {
+            if (profile?.profile_setup_complete) {
+              onNavigate('dashboard');
+            } else {
+              toast.error('Please complete your profile first');
+            }
+          }}
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
           <ArrowLeft className="w-6 h-6 text-[#2D2D2D]" />
         </button>
-        <h1 className="text-lg font-semibold text-[#2D2D2D] ml-2">Complete Your Profile</h1>
+        <div className="flex items-center justify-between flex-1">
+          <h1 className="text-lg font-semibold text-[#2D2D2D] ml-2">
+            {profile?.profile_setup_complete ? 'Your Profile' : 'Complete Your Profile'}
+          </h1>
+          {profile?.profile_setup_complete && (
+            <button
+              onClick={handleEditSaveToggle}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              {editMode ? (
+                <Save className="w-5 h-5 text-[#0047AB]" />
+              ) : (
+                <Edit className="w-5 h-5 text-[#0047AB]" />
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -121,6 +185,11 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 className="input-field pl-10"
+                disabled={profile?.profile_setup_complete && !editMode}
+                style={{
+                  opacity: profile?.profile_setup_complete && !editMode ? 0.7 : 1,
+                  cursor: profile?.profile_setup_complete && !editMode ? 'not-allowed' : 'pointer'
+                }}
               >
                 <option value="">Select a title</option>
                 <option value="Mr">Mr</option>
@@ -143,6 +212,11 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 onChange={(e) => setFormData(prev => ({ ...prev, first_names: e.target.value }))}
                 className="input-field pl-10"
                 placeholder="Enter your first names"
+                disabled={profile?.profile_setup_complete && !editMode}
+                style={{
+                  opacity: profile?.profile_setup_complete && !editMode ? 0.7 : 1,
+                  cursor: profile?.profile_setup_complete && !editMode ? 'not-allowed' : 'auto'
+                }}
                 required
               />
             </div>
@@ -160,6 +234,11 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 onChange={(e) => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
                 className="input-field pl-10"
                 placeholder="Enter your last name"
+                disabled={profile?.profile_setup_complete && !editMode}
+                style={{
+                  opacity: profile?.profile_setup_complete && !editMode ? 0.7 : 1,
+                  cursor: profile?.profile_setup_complete && !editMode ? 'not-allowed' : 'auto'
+                }}
                 required
               />
             </div>
@@ -177,6 +256,11 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 className="input-field pl-10"
                 placeholder="Enter your email address"
+                disabled={profile?.profile_setup_complete && !editMode}
+                style={{
+                  opacity: profile?.profile_setup_complete && !editMode ? 0.7 : 1,
+                  cursor: profile?.profile_setup_complete && !editMode ? 'not-allowed' : 'auto'
+                }}
                 required
               />
             </div>
@@ -194,6 +278,11 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 onChange={(e) => setFormData(prev => ({ ...prev, cellphone: e.target.value }))}
                 className="input-field pl-10"
                 placeholder="Enter your cellphone number"
+                disabled={profile?.profile_setup_complete && !editMode}
+                style={{
+                  opacity: profile?.profile_setup_complete && !editMode ? 0.7 : 1,
+                  cursor: profile?.profile_setup_complete && !editMode ? 'not-allowed' : 'auto'
+                }}
                 required
               />
             </div>
@@ -211,6 +300,11 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 onChange={(e) => setFormData(prev => ({ ...prev, id_number: e.target.value }))}
                 className="input-field pl-10"
                 placeholder="Enter your ID number"
+                disabled={profile?.profile_setup_complete && !editMode}
+                style={{
+                  opacity: profile?.profile_setup_complete && !editMode ? 0.7 : 1,
+                  cursor: profile?.profile_setup_complete && !editMode ? 'not-allowed' : 'auto'
+                }}
                 required
               />
             </div>
@@ -227,6 +321,11 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                 className="input-field pl-10 min-h-[100px]"
                 placeholder="Enter your residential address"
+                disabled={profile?.profile_setup_complete && !editMode}
+                style={{
+                  opacity: profile?.profile_setup_complete && !editMode ? 0.7 : 1,
+                  cursor: profile?.profile_setup_complete && !editMode ? 'not-allowed' : 'auto'
+                }}
                 required
               />
             </div>
@@ -234,8 +333,8 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
 
           <button
             type="submit"
-            disabled={updateLoading}
-            className="save-button"
+            disabled={updateLoading || !formData.first_names || !formData.last_name || !formData.email || !formData.cellphone || !formData.id_number || !formData.address}
+            className={`save-button ${profile?.profile_setup_complete ? 'mt-4' : ''}`}
           >
             {updateLoading ? (
               <Loader2 className="w-5 h-5 animate-spin mx-auto" />

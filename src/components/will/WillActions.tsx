@@ -16,7 +16,7 @@ export function WillActions({ isReviewed, onMarkAsReviewed, isFullscreen, onNavi
         <button
           onClick={() => {
             onMarkAsReviewed();
-            onNavigate('dashboard')
+            onNavigate('dashboard');
           }}
           className={`${isFullscreen ? 'flex' : 'w-full flex'} items-center justify-center gap-2 px-4 py-3 rounded-lg text-white transition-all hover:transform hover:scale-[1.02]`}
           style={{

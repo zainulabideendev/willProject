@@ -13,6 +13,7 @@ interface Child {
 
 interface GuardianSectionProps {
   profileId: string;
+  editMode?: boolean;
   onGuardianSaved: () => void;
   guardian_title?: string;
   guardian_first_names?: string;
@@ -24,6 +25,7 @@ interface GuardianSectionProps {
 }
 
 export function GuardianSection({ 
+  editMode = true,
   profileId,
   onGuardianSaved,
   guardian_title,
@@ -151,7 +153,7 @@ export function GuardianSection({
 
   if (loading) {
     return (
-      <div className="mt-4 p-6 rounded-lg" style={{
+      <div className="mt-4 p-6 rounded-lg\" style={{
         background: 'linear-gradient(145deg, #ffffff, #f5f5f5)',
         boxShadow: '6px 6px 12px #d1d1d1, -6px -6px 12px #ffffff'
       }}>
@@ -265,7 +267,12 @@ export function GuardianSection({
                 onChange={(e) => {
                   handleFieldUpdate({ title: e.target.value });
                 }}
+                disabled={!editMode}
                 className="input-field pl-10"
+                style={{
+                  opacity: !editMode ? 0.7 : 1,
+                  cursor: !editMode ? 'not-allowed' : 'pointer'
+                }}
               >
                 <option value="">Select a title</option>
                 <option value="Mr">Mr</option>
@@ -288,8 +295,13 @@ export function GuardianSection({
                 onChange={(e) => {
                   handleFieldUpdate({ first_names: e.target.value });
                 }}
+                disabled={!editMode}
                 className="input-field pl-10"
                 placeholder="Enter guardian's first names"
+                style={{
+                  opacity: !editMode ? 0.7 : 1,
+                  cursor: !editMode ? 'not-allowed' : 'auto'
+                }}
               />
             </div>
           </div>
@@ -306,8 +318,13 @@ export function GuardianSection({
                 onChange={(e) => {
                   handleFieldUpdate({ last_name: e.target.value });
                 }}
+                disabled={!editMode}
                 className="input-field pl-10"
                 placeholder="Enter guardian's last name"
+                style={{
+                  opacity: !editMode ? 0.7 : 1,
+                  cursor: !editMode ? 'not-allowed' : 'auto'
+                }}
               />
             </div>
           </div>
@@ -324,8 +341,13 @@ export function GuardianSection({
                 onChange={(e) => {
                   handleFieldUpdate({ id_number: e.target.value });
                 }}
+                disabled={!editMode}
                 className="input-field pl-10"
                 placeholder="Enter guardian's ID number"
+                style={{
+                  opacity: !editMode ? 0.7 : 1,
+                  cursor: !editMode ? 'not-allowed' : 'auto'
+                }}
               />
             </div>
           </div>
@@ -342,8 +364,13 @@ export function GuardianSection({
                 onChange={(e) => {
                   handleFieldUpdate({ phone: e.target.value });
                 }}
+                disabled={!editMode}
                 className="input-field pl-10"
                 placeholder="Enter guardian's cellphone number"
+                style={{
+                  opacity: !editMode ? 0.7 : 1,
+                  cursor: !editMode ? 'not-allowed' : 'auto'
+                }}
               />
             </div>
           </div>
@@ -360,8 +387,13 @@ export function GuardianSection({
                 onChange={(e) => {
                   handleFieldUpdate({ relationship: e.target.value });
                 }}
+                disabled={!editMode}
                 className="input-field pl-10"
                 placeholder="Enter relationship to children"
+                style={{
+                  opacity: !editMode ? 0.7 : 1,
+                  cursor: !editMode ? 'not-allowed' : 'auto'
+                }}
               />
             </div>
           </div>
@@ -377,8 +409,13 @@ export function GuardianSection({
                 onChange={(e) => {
                   handleFieldUpdate({ address: e.target.value });
                 }}
+                disabled={!editMode}
                 className="input-field pl-10 min-h-[100px]"
                 placeholder="Enter guardian's address"
+                style={{
+                  opacity: !editMode ? 0.7 : 1,
+                  cursor: !editMode ? 'not-allowed' : 'auto'
+                }}
               />
             </div>
           </div>
@@ -386,13 +423,13 @@ export function GuardianSection({
 
         <button
           onClick={handleSaveGuardian}
-          disabled={!isFormValid || saving}
+          disabled={!isFormValid || saving || !editMode}
           className="w-full mt-6 py-2 px-4 text-white rounded-lg transition-all text-sm"
           style={{
             background: 'linear-gradient(145deg, #0047AB, #D4AF37)',
             boxShadow: '6px 6px 12px #d1d1d1, -6px -6px 12px #ffffff',
-            opacity: (!isFormValid || saving) ? 0.5 : 1,
-            cursor: (!isFormValid || saving) ? 'not-allowed' : 'pointer'
+            opacity: (!isFormValid || saving || !editMode) ? 0.5 : 1,
+            cursor: (!isFormValid || saving || !editMode) ? 'not-allowed' : 'pointer'
           }}
         >
           {saving ? (

@@ -1,0 +1,81 @@
+.step-progress-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin: 1rem 0 2rem;
+  position: relative;
+}
+
+.step-progress-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #e5e7eb;
+  transform: translateY(-50%);
+  z-index: 0;
+}
+
+.step-progress-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #0047AB, #D4AF37);
+  transform: translateY(-50%);
+  z-index: 1;
+  transition: width 0.3s ease;
+}
+
+.step-item {
+  width: 33.33%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.step-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.step-dot.active {
+  background: linear-gradient(145deg, #0047AB, #D4AF37);
+  box-shadow: 0 0 0 3px rgba(0, 71, 171, 0.2);
+}
+
+.step-dot.completed {
+  background: linear-gradient(145deg, #0047AB, #D4AF37);
+}
+
+.step-dot.inactive {
+  background: #e5e7eb;
+}
+
+.step-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.step-label.active {
+  color: #0047AB;
+}
+
+.step-label.completed {
+  color: #0047AB;
+}
+
+.step-label.inactive {
+  color: #9ca3af;
+}

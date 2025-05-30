@@ -5,6 +5,7 @@ import { FamilyMember } from '../../lib/types';
 interface ResidueSectionProps {
   selectedMembers: FamilyMember[];
   manualBeneficiaries: any[];
+  editMode: boolean;
   residueAllocations: Record<string, number>;
   onResidueChange: (beneficiaryId: string, percentage: number) => void;
   onSaveResidue: () => void;
@@ -15,6 +16,7 @@ interface ResidueSectionProps {
 export function ResidueSection({
   selectedMembers,
   manualBeneficiaries,
+  editMode,
   residueAllocations,
   onResidueChange,
   onSaveResidue,
@@ -25,6 +27,7 @@ export function ResidueSection({
     <div className="-mt-12">
       <ResidueAllocationCard
         beneficiaries={[...selectedMembers, ...manualBeneficiaries]}
+        editMode={editMode}
         allocations={residueAllocations}
         onAllocationChange={onResidueChange}
         onSave={onSaveResidue}

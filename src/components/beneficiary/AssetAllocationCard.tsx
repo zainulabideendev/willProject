@@ -17,6 +17,7 @@ interface AssetAllocationCardProps {
   asset: Asset;
   beneficiaries: Array<any>;
   allocations: Record<string, number>;
+  editMode: boolean;
   onAllocationChange: (beneficiaryId: string, percentage: number) => void;
   onSave: () => void;
   loading?: boolean;
@@ -106,6 +107,7 @@ const AllocationPieChart: React.FC<{
 export function AssetAllocationCard({
   asset,
   beneficiaries,
+  editMode,
   allocations,
   onAllocationChange,
   onSave,
@@ -190,7 +192,7 @@ export function AssetAllocationCard({
               type="number"
               min="0"
               max="100"
-              disabled={loading}
+              disabled={loading || !editMode}
               value={allocations[
                 beneficiary.type === 'spouse' || beneficiary.type === 'partner' 
                   ? beneficiary.type 
@@ -202,6 +204,10 @@ export function AssetAllocationCard({
                 Math.min(100, Math.max(0, Number(e.target.value) || 0))
               )}
               className="allocation-input"
+              style={{
+                opacity: (!editMode || loading) ? 0.7 : 1,
+                cursor: (!editMode || loading) ? 'not-allowed' : 'auto'
+              }}
               step="1"
             />
             <div className="percentage-symbol">%</div>
@@ -213,8 +219,12 @@ export function AssetAllocationCard({
       </div>
       <button
         onClick={onSave}
-        className="save-allocations-button"
-        disabled={loading || !hasUnsavedChanges}
+        className="save-allocations-button" 
+        disabled={loading || !hasUnsavedChanges || !editMode}
+        style={{
+          opacity: (loading || !hasUnsavedChanges || !editMode) ? 0.5 : 1,
+          cursor: (loading || !hasUnsavedChanges || !editMode) ? 'not-allowed' : 'pointer'
+        }}
       >
         {loading ? (
           <Loader2 className="w-5 h-5 animate-spin mx-auto" />

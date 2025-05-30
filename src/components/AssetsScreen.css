@@ -120,10 +120,9 @@
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-  font-size: 0.875rem;
-  color: #2D2D2D;
+  color: white;
   transition: all 0.3s ease;
-  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+  background: linear-gradient(145deg, #0047AB, #D4AF37);
   box-shadow: 
     4px 4px 8px #d1d1d1,
     -4px -4px 8px #ffffff;
@@ -221,6 +220,24 @@ select.input-field {
 .add-asset-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.add-asset-button.bg-red-500 {
+  background: #ef4444;
+  color: white;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 
+    6px 6px 12px #d1d1d1,
+    -6px -6px 12px #ffffff;
+}
+
+.add-asset-button.bg-red-500:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 
+    8px 8px 16px #d1d1d1,
+    -8px -8px 16px #ffffff;
 }
 
 :root {

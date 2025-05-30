@@ -13,13 +13,15 @@ interface Executor {
 interface ExecutorHandlingOptionsProps {
   profileId: string;
   executors: Executor[];
+  editMode?: boolean;
   onUpdate: () => void;
 }
 
 type HandlingType = 'jointly' | 'independently' | null;
 
 export function ExecutorHandlingOptions({ 
-  profileId, 
+  profileId,
+  editMode = true,
   executors, 
   onUpdate 
 }: ExecutorHandlingOptionsProps) {
@@ -30,6 +32,7 @@ export function ExecutorHandlingOptions({
   
   const [primaryExecutorId, setPrimaryExecutorId] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
 
   React.useEffect(() => {
     const loadPreferences = async () => {
@@ -131,7 +134,16 @@ export function ExecutorHandlingOptions({
       <div className="handling-options">
         <button
           onClick={() => setHandlingType('jointly')}
+          onClick={() => {
+            setHandlingType('jointly');
+            setHasUnsavedChanges(true);
+          }}
+          disabled={!editMode}
           className={`handling-option ${handlingType === 'jointly' ? 'selected' : ''}`}
+          style={{
+            opacity: !editMode ? 0.7 : 1,
+            cursor: !editMode ? 'not-allowed' : 'pointer'
+          }}
         >
           <div className="option-content">
             <Users className="option-icon" />
@@ -145,8 +157,16 @@ export function ExecutorHandlingOptions({
         </button>
 
         <button
-          onClick={() => setHandlingType('independently')}
+          onClick={() => {
+            setHandlingType('independently');
+            setHasUnsavedChanges(true);
+          }}
+          disabled={!editMode}
           className={`handling-option ${handlingType === 'independently' ? 'selected' : ''}`}
+          style={{
+            opacity: !editMode ? 0.7 : 1,
+            cursor: !editMode ? 'not-allowed' : 'pointer'
+          }}
         >
           <div className="option-content">
             <UserCheck className="option-icon" />
@@ -166,9 +186,17 @@ export function ExecutorHandlingOptions({
           <div className="executor-list">
             {executors.map((executor) => (
               <button
+                disabled={!editMode}
                 key={executor.id}
-                onClick={() => setPrimaryExecutorId(executor.id)}
+                onClick={() => {
+                  setPrimaryExecutorId(executor.id);
+                  setHasUnsavedChanges(true);
+                }}
                 className={`executor-button ${primaryExecutorId === executor.id ? 'selected' : ''}`}
+                style={{
+                  opacity: !editMode ? 0.7 : 1,
+                  cursor: !editMode ? 'not-allowed' : 'pointer'
+                }}
               >
                 {executor.first_names} {executor.last_name}
               </button>
@@ -179,8 +207,12 @@ export function ExecutorHandlingOptions({
 
       <button
         onClick={handleSave}
-        disabled={!handlingType || (handlingType === 'independently' && !primaryExecutorId) || saving}
+        disabled={!handlingType || (handlingType === 'independently' && !primaryExecutorId) || saving || !editMode || !hasUnsavedChanges}
         className="save-button"
+        style={{
+          opacity: (!handlingType || (handlingType === 'independently' && !primaryExecutorId) || saving || !editMode || !hasUnsavedChanges) ? 0.5 : 1,
+          cursor: (!handlingType || (handlingType === 'independently' && !primaryExecutorId) || saving || !editMode || !hasUnsavedChanges) ? 'not-allowed' : 'pointer'
+        }}
       >
         {saving ? (
           <span className="loading-spinner" />
@@ -190,4 +222,30 @@ export function ExecutorHandlingOptions({
       </button>
     </div>
   );
+  
+  // Listen for save events from parent component
+  React.useEffect(() => {
+    const handleSaveEvent = () => {
+      if (editMode) {
+        if (hasUnsavedChanges && handlingType) {
+          // Only save if there are changes and we have a valid handling type
+          if (handlingType === 'independently' && !primaryExecutorId) {
+            toast.error('Please select a primary executor');
+            return;
+          }
+          handleSave();
+          setHasUnsavedChanges(false);
+        } else if (handlingType) {
+          // If we have a handling type but no changes, still consider it a success
+          // This ensures the save icon works even when no changes were made
+          console.log('Executor handling preferences are up to date');
+        }
+      }
+    };
+    
+    window.addEventListener('executor-handling-save', handleSaveEvent);
+    return () => {
+      window.removeEventListener('executor-handling-save', handleSaveEvent);
+    };
+  }, [hasUnsavedChanges, editMode, handlingType, primaryExecutorId]);
 }

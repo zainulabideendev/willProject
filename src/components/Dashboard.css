@@ -35,6 +35,35 @@
   opacity: 0.6;
 }
 
+.important-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(145deg, #f5f5f5, #ffffff);
+  box-shadow: inset 1px 1px 2px #d1d1d1, inset -1px -1px 2px #ffffff;
+}
+
+.important-note-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #0047AB, #D4AF37);
+  color: white;
+}
+
+.important-note-text {
+  font-size: 0.75rem;
+  line-height: 1.25;
+  color: #2D2D2D;
+}
+
 .download-will-button {
   position: absolute;
   top: 50%;

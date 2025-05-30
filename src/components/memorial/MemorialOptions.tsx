@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 
 interface MemorialOptionsProps {
   profileId: string;
+  editMode?: boolean;
   memorialType?: string;
   memorialMessage?: string;
 }
@@ -33,7 +34,7 @@ const memorialOptions = [
   }
 ];
 
-export function MemorialOptions({ profileId, memorialType: initialType, memorialMessage: initialMessage }: MemorialOptionsProps) {
+export function MemorialOptions({ profileId, editMode = true, memorialType: initialType, memorialMessage: initialMessage }: MemorialOptionsProps) {
   // Initialize state from localStorage or props
   const [memorialType, setMemorialType] = React.useState<string | undefined>(() => {
     const savedType = localStorage.getItem(`memorial-type-${profileId}`);
@@ -97,7 +98,8 @@ export function MemorialOptions({ profileId, memorialType: initialType, memorial
           {memorialOptions.map((option) => (
             <Tooltip.Provider key={option.id}>
               <Tooltip.Root>
-                <button
+                <button 
+                  disabled={!editMode}
                   onClick={() => handleMemorialTypeChange(option.id)}
                   className={`w-full text-left p-3 rounded-lg transition-all ${
                     memorialType === option.id
@@ -106,7 +108,9 @@ export function MemorialOptions({ profileId, memorialType: initialType, memorial
                   style={{
                     boxShadow: memorialType === option.id
                       ? '6px 6px 12px #d1d1d1, -6px -6px 12px #ffffff'
-                      : 'inset 2px 2px 5px #d1d1d1, inset -2px -2px 5px #ffffff'
+                      : 'inset 2px 2px 5px #d1d1d1, inset -2px -2px 5px #ffffff',
+                     opacity: !editMode ? 0.7 : 1,
+                     cursor: !editMode ? 'not-allowed' : 'pointer'
                   }}
                 >
                   <div className="flex items-center justify-between">
@@ -151,20 +155,26 @@ export function MemorialOptions({ profileId, memorialType: initialType, memorial
           value={memorialMessage}
           onChange={(e) => handleMessageChange(e.target.value)}
           className="w-full min-h-[120px] p-3 rounded-lg text-sm resize-none"
+          disabled={!editMode}
           placeholder="Share any specific wishes for your memorial service..."
           style={{
             background: 'linear-gradient(145deg, #ffffff, #f5f5f5)',
-            boxShadow: 'inset 2px 2px 5px #d1d1d1, inset -2px -2px 5px #ffffff'
+            boxShadow: 'inset 2px 2px 5px #d1d1d1, inset -2px -2px 5px #ffffff',
+            opacity: !editMode ? 0.7 : 1,
+            cursor: !editMode ? 'not-allowed' : 'auto'
           }}
         />
       </div>
 
       <button
         onClick={handleSavePreferences}
+        disabled={!editMode}
         className="w-full mt-6 py-2 px-4 text-white rounded-lg transition-all text-sm"
         style={{
           background: 'linear-gradient(145deg, #0047AB, #D4AF37)',
-          boxShadow: '6px 6px 12px #d1d1d1, -6px -6px 12px #ffffff'
+          boxShadow: '6px 6px 12px #d1d1d1, -6px -6px 12px #ffffff',
+          opacity: !editMode ? 0.5 : 1,
+          cursor: !editMode ? 'not-allowed' : 'pointer'
         }}
       >
         Save Preferences

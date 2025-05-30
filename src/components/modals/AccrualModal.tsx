@@ -63,12 +63,6 @@ export function AccrualModal({ isOpen, onClose }: AccrualModalProps) {
               Accrual Settlement
               </h2>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <X className="w-5 h-5 text-[#2D2D2D]" />
-            </button>
           </div>
 
           <div className="space-y-3 text-[#2D2D2D] text-sm">

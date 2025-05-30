@@ -111,6 +111,9 @@ function generateWitnessSection(witnesses: any): string {
 export function generateWillContent(willTemplate: string, data: WillData): string {
   const { profile, assets, beneficiaries, executors, children, assetAllocations, residueAllocations, partnerFirm, pets, charity, witnesses } = data;
   let content = willTemplate;
+  const today = new Date();
+  
+  // Replace basic profile information
   // Basic Profile Information
   content = content.replace(/{{FULL_NAME}}/g, profile.full_name || 'N/A');
   content = content.replace(/{{ADDRESS}}/g, profile.address || 'N/A');
@@ -188,6 +191,18 @@ export function generateWillContent(willTemplate: string, data: WillData): strin
     content = content.replace(/{{pet_care_amount}}/g, pets.care_amount?.toString() || '0');
   }
 
+  // Add current date to the signature line
+  const formattedDate = today.toLocaleDateString('en-US', { 
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  
+  content = content.replace(
+    "IN WITNESS WHEREOF, I have hereunto set my hand to this, my Last Will and Testament, on this ____ day of ________________, 20____",
+    `IN WITNESS WHEREOF, I have hereunto set my hand to this, my Last Will and Testament, on this ${formattedDate}`
+  );
+  
   // Charitable Donation
   if (charity) {
     content = content.replace(/{{charity_name}}/g, charity.name || 'N/A');

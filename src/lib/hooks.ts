@@ -108,62 +108,6 @@ export function useProfile() {
         }
 
         // Check if profile exists
-        const { data: profileExists, error: existsError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (existsError) {
-          if (existsError.code === '42501') {
-            // Permission error – try creating the profile
-            const { data: newProfile, error: insertError } = await supabase
-              .from('profiles')
-              .insert([{ id: user.id }])
-              .select()
-              .single();
-
-            if (insertError) throw insertError;
-            if (!newProfile) throw new Error('Failed to create profile');
-
-            if (isSubscribed) {
-              setProfile(newProfile as Profile);
-              setError(null);
-              setLoading(false);
-            }
-            return;
-          } else {
-            throw existsError;
-          }
-        }
-
-        if (!profileExists) {
-          // No existing profile – try inserting
-          const { data: newProfile, error: insertError } = await supabase
-            .from('profiles')
-            .insert([{ id: user.id }])
-            .select()
-            .single();
-
-          if (insertError) {
-            if (insertError.code === '409') {
-              console.warn('Profile already exists, likely due to race condition. Proceeding to fetch.');
-            } else {
-              throw insertError;
-            }
-          }
-
-          if (newProfile) {
-            if (isSubscribed) {
-              setProfile(newProfile as Profile);
-              setError(null);
-              setLoading(false);
-            }
-            return;
-          }
-        }
-
-        // Fetch full profile data
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select(`
@@ -204,10 +148,91 @@ export function useProfile() {
             last_message
           `)
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (profileError) throw profileError;
-        if (!profileData) throw new Error('Profile not found');
+        if (profileError) {
+          if (profileError.code === '42501') {
+            // Permission error – try creating the profile
+            const { data: newProfile, error: insertError } = await supabase
+              .from('profiles')
+              .insert([{ id: user.id }])
+              .select();
+
+            if (insertError) {
+              if (insertError.code === '23505') {
+                // Profile already exists (race condition) - retry fetch
+                console.warn('Profile creation race condition detected, retrying fetch...');
+                const { data: retryData, error: retryError } = await supabase
+                  .from('profiles')
+                  .select()
+                  .eq('id', user.id)
+                  .maybeSingle();
+
+                if (retryError) throw retryError;
+                if (!retryData) throw new Error('Profile not found after retry');
+
+                if (isSubscribed) {
+                  setProfile(retryData as Profile);
+                  setError(null);
+                  setLoading(false);
+                }
+                return;
+              }
+              throw insertError;
+            }
+
+            if (newProfile && newProfile.length > 0) {
+              if (isSubscribed) {
+                setProfile(newProfile[0] as Profile);
+                setError(null);
+                setLoading(false);
+              }
+              return;
+            }
+          } else {
+            throw profileError;
+          }
+        }
+
+        if (!profileData) {
+          // No existing profile – try inserting
+          const { data: newProfile, error: insertError } = await supabase
+            .from('profiles')
+            .insert([{ id: user.id }])
+            .select();
+
+          if (insertError) {
+            if (insertError.code === '23505') {
+              // Profile already exists (race condition) - retry fetch
+              console.warn('Profile creation race condition detected, retrying fetch...');
+              const { data: retryData, error: retryError } = await supabase
+                .from('profiles')
+                .select()
+                .eq('id', user.id)
+                .maybeSingle();
+
+              if (retryError) throw retryError;
+              if (!retryData) throw new Error('Profile not found after retry');
+
+              if (isSubscribed) {
+                setProfile(retryData as Profile);
+                setError(null);
+                setLoading(false);
+              }
+              return;
+            }
+            throw insertError;
+          }
+
+          if (newProfile && newProfile.length > 0) {
+            if (isSubscribed) {
+              setProfile(newProfile[0] as Profile);
+              setError(null);
+              setLoading(false);
+            }
+            return;
+          }
+        }
 
         if (isSubscribed) {
           setProfile(profileData as Profile);
@@ -349,7 +374,7 @@ export function useEstateScore(profileId: string | undefined) {
         .from('profiles')
         .select('*')
         .eq('id', profileId)
-        .single();
+        .maybeSingle();
 
       if (profileError) throw profileError;
       if (!profileData) throw new Error('Profile not found');
@@ -373,8 +398,6 @@ export function useEstateScore(profileId: string | undefined) {
           .insert([{
             profile_id: profileId,
             total_score: calculatedScore,
-            beneficiary_score: 0,
-            asset_coverage_score: 0,
             last_updated: new Date().toISOString()
           }])
           .select()

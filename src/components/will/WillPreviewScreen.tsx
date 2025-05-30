@@ -8,9 +8,10 @@ import { WillHeader } from './WillHeader';
 import { WillContent } from './WillContent';
 import { WillActions } from './WillActions';
 import { FullscreenWill } from './FullscreenWill';
-import { WillDataProvider, useWillData } from './WillDataProvider';
+import { useWillData } from './WillDataProvider';
 import { generateWillContent } from './WillGenerator';
 import './WillPreviewScreen.css';
+import { useNavigate } from 'react-router-dom';
 
 interface WillPreviewScreenProps {
   onNavigate: (screen: string) => void;
@@ -18,10 +19,12 @@ interface WillPreviewScreenProps {
 
 function WillPreviewContent({ onNavigate }: WillPreviewScreenProps) {
   const { profile, loading: profileLoading } = useProfile();
+  const { score, refetchScore } = useEstateScore(profile?.id);
   const { loading, assets, beneficiaries, executors, children, assetAllocations, residueAllocations, partnerFirm } = useWillData();
   const [willContent, setWillContent] = React.useState('');
   const [willReviewed, setWillReviewed] = React.useState(false);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     if (profile) {
@@ -62,10 +65,21 @@ function WillPreviewContent({ onNavigate }: WillPreviewScreenProps) {
       if (error) throw error;
       
       setWillReviewed(true);
-      toast.success('Will marked as reviewed successfully!');
+      
+      // Update estate score
+      await refetchScore();
+      
+      toast.success('Will marked as reviewed successfully! Your estate score has been updated.', {
+        duration: 5000,
+        onAutoClose: () => {
+          // Navigate back to dashboard and refresh to show updated score
+          onNavigate('dashboard');
+          setTimeout(() => navigate(0), 300);
+        }
+      });
       
       // Navigate back to dashboard after successful review
-      onNavigate('dashboard');
+      // This is now handled by the toast callback
     } catch (error) {
       console.error('Error marking will as reviewed:', error);
       toast.error('Failed to mark will as reviewed');

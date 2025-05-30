@@ -28,7 +28,8 @@ export function BeneficiaryList({
     );
   }
 
-  if (familyMembers.length === 0) {
+  // Only show this message if there are no family members AND no manual beneficiaries
+  if (familyMembers.length === 0 && selectedMembers.length === 0 && manualBeneficiaries.length === 0) {
     return (
       <p className="text-center text-[#2D2D2D]/60 py-4">
         No family members found. Add family members in your profile first.
@@ -38,7 +39,7 @@ export function BeneficiaryList({
 
   return (
     <div className="space-y-4">
-      {familyMembers.map((member) => (
+      {familyMembers.length > 0 && familyMembers.map((member) => (
         <React.Fragment key={member.id}>
           <FamilyMemberCard
             member={member}
@@ -49,7 +50,7 @@ export function BeneficiaryList({
         </React.Fragment>
       ))}
 
-      {selectedMembers.length > 0 && (
+      {(selectedMembers.length > 0 || manualBeneficiaries.length > 0) && (
         <div className="selected-members">
           <h3 className="text-lg font-semibold mb-4">Added Beneficiaries</h3>
           {selectedMembers.map((member) => (

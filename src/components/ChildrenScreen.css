@@ -162,7 +162,7 @@
 .input-field:focus {
   outline: none;
   box-shadow: 
-    inset 3px 3px 6px #d1d1d1,
+    inset 3px 3px 6px #d1d1d1, 
     inset -3px -3px 6px #ffffff,
     0 0 0 3px rgba(0, 71, 171, 0.1);
 }

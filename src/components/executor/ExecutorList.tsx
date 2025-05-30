@@ -15,11 +15,12 @@ interface Executor {
 
 interface ExecutorListProps {
   profileId: string;
+  editMode?: boolean;
   selectedFirm: any;
   onExecutorDeleted: () => void;
 }
 
-export function ExecutorList({ profileId, selectedFirm, onExecutorDeleted }: ExecutorListProps) {
+export function ExecutorList({ profileId, editMode = true, selectedFirm, onExecutorDeleted }: ExecutorListProps) {
   const [executors, setExecutors] = React.useState<Executor[]>([]);
   const [loading, setLoading] = React.useState(true);
 
@@ -105,13 +106,15 @@ export function ExecutorList({ profileId, selectedFirm, onExecutorDeleted }: Exe
             <p className="executor-email">
               {executor.email}
             </p>
-          </div>
-          <button
-            onClick={() => handleDelete(executor.id)}
-            className="delete-button"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          </div> 
+          {editMode && (
+            <button
+              onClick={() => handleDelete(executor.id)}
+              className="delete-button"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       ))}
     </div>

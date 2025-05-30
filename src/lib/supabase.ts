@@ -3,8 +3,16 @@ import { createClient } from '@supabase/supabase-js';
 export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 export const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Validate environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
+}
+
+// Validate Supabase URL format
+try {
+  new URL(supabaseUrl);
+} catch (e) {
+  throw new Error(`Invalid Supabase URL format: ${supabaseUrl}`);
 }
 
 // Enhanced retry configuration
@@ -13,14 +21,13 @@ const BASE_DELAY = 1000;
 const MAX_DELAY = 5000;
 const FETCH_TIMEOUT = 30000;
 
-// Check if URL is valid and accessible
+// Check if URL is accessible
 async function isUrlAccessible(url: string): Promise<boolean> {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
     try {
-      // Use a simple HEAD request to the health endpoint
       const response = await fetch(`${url}/rest/v1/`, {
         method: 'HEAD',
         signal: controller.signal,
@@ -34,7 +41,6 @@ async function isUrlAccessible(url: string): Promise<boolean> {
       clearTimeout(timeoutId);
     }
   } catch (error) {
-    // Log the specific error for debugging
     console.warn('URL accessibility check failed:', error);
     return false;
   }
@@ -55,6 +61,12 @@ async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Pro
   // Basic online check
   if (!navigator.onLine) {
     throw new Error('No internet connection available');
+  }
+
+  // Check if Supabase URL is accessible before proceeding
+  const isAccessible = await isUrlAccessible(supabaseUrl);
+  if (!isAccessible) {
+    throw new Error(`Unable to connect to Supabase at ${supabaseUrl}. Please check your configuration and try again.`);
   }
 
   // Initialize headers with the required Supabase headers
@@ -78,7 +90,9 @@ async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Pro
         const response = await fetch(input, {
           ...init,
           headers,
-          signal: controller.signal
+          signal: controller.signal,
+          // Add credentials mode for CORS
+          credentials: 'include'
         });
 
         // Check for specific HTTP status codes that warrant retries
@@ -116,7 +130,7 @@ async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Pro
           lastError = new Error('Request timeout - server took too long to respond');
         } else if (error.name === 'TypeError') {
           if (error.message.includes('Failed to fetch')) {
-            lastError = new Error('Network error - check your connection and try again');
+            lastError = new Error(`Network error - Unable to connect to Supabase at ${supabaseUrl}. Please check your configuration and try again.`);
           } else {
             lastError = error;
           }

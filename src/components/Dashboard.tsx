@@ -2,6 +2,7 @@ import React from 'react';
 import { Home, Settings, Loader2 } from 'lucide-react';
 import { CircularProgress } from './CircularProgress';
 import { ProgressSteps } from './ProgressSteps';
+import { GuidanceMessage } from './GuidanceMessage';
 import { WelcomeModal } from './WelcomeModal';
 import { EstateEssentialsHub } from './EstateEssentialsHub';
 import { useProfile, useEstateScore, useUpdateProfile } from '../lib/hooks';
@@ -12,7 +13,9 @@ import { useWillData } from './will/WillDataProvider';
 import jsPDF from "jspdf";
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
-import { Download } from 'lucide-react';
+import { Download, Upload } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { LegalComplianceModal } from './modals/LegalComplianceModal';
 import * as Tooltip from '@radix-ui/react-tooltip';
 
 interface Step {
@@ -28,14 +31,26 @@ interface DashboardProps {
 
 export function Dashboard({ onNavigate }: DashboardProps) {
   const [showWelcome, setShowWelcome] = React.useState(false);
+  const [showLegalComplianceModal, setShowLegalComplianceModal] = React.useState(false);
+  const [hasConfirmedCompliance, setHasConfirmedCompliance] = React.useState(false);
   const { profile, loading: profileLoading } = useProfile();
   const { score, loading: scoreLoading, refetchScore } = useEstateScore(profile?.id);
   const { updateProfile, loading: updateLoading } = useUpdateProfile();
   const { loading, assets, beneficiaries, executors, children, assetAllocations, residueAllocations, partnerFirm } = useWillData();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     // Refetch score when dashboard is mounted
     refetchScore?.();
+    
+    // Check if user has confirmed legal compliance
+    const hasConfirmed = localStorage.getItem('legal-compliance-confirmed') === 'true';
+    setHasConfirmedCompliance(hasConfirmed);
+    
+    // Show legal compliance modal for users who have downloaded their will but haven't confirmed compliance
+    if (profile?.will_downloaded && !hasConfirmed) {
+      setShowLegalComplianceModal(true);
+    }
   }, [refetchScore]);
 
   const willSteps: Step[] = [
@@ -136,7 +151,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const downloadWillInPdf = async() => {
     try {
       if (profile && !loading) {
-        toast.info('Preparing your will document...');
+        toast.info('Preparing your will document...', { duration: 3000 });
         const content = generateWillContent(willTemplate, {
           profile,
           assets,
@@ -150,15 +165,18 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         const doc = generatePDF(content);
         doc.save("will-document.pdf");
         const { error } = await supabase
-        .from('profiles')
-        .update({ will_downloaded: true })
-        .eq('id', profile.id);
+          .from('profiles')
+          .update({ will_downloaded: true })
+          .eq('id', profile.id);
         
-      if (error) throw error;
+        if (error) throw error;
       
-      onNavigate('dashboard')
-      toast.success('Will downloaded successfully!');
-      await refetchScore?.();
+        // Show legal compliance modal
+        setShowLegalComplianceModal(true);
+        
+        // Update the estate score in the background
+        await refetchScore?.();
+        toast.success('Will downloaded successfully!');
       }
     } catch (error) {
       console.log(error)
@@ -177,40 +195,84 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="relative space-y-6 pb-20">
       <WelcomeModal isOpen={showWelcome} onClose={handleWelcomeClose} />
+      <LegalComplianceModal 
+        isOpen={showLegalComplianceModal} 
+        onClose={() => {
+          // When closing, mark as confirmed
+          localStorage.setItem('legal-compliance-confirmed', 'true');
+          setHasConfirmedCompliance(true);
+          setShowLegalComplianceModal(false); 
+        }} 
+      />
       <div className="bg-white rounded-2xl p-6 mb-4 dashboard-card">
         <div className="flex items-center gap-2 mb-4">
           <h2 className="text-xl font-semibold text-[#2D2D2D]">Estate Health Score</h2>
+          
+          <div className="flex-1"></div>
+          
+          <div className="flex items-center gap-2">
+            <Tooltip.Provider>
+              {calculatedScore === 100 && (
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <button 
+                      onClick={downloadWillInPdf} 
+                      className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                      style={{
+                        background: 'linear-gradient(145deg, #0047AB, #D4AF37)',
+                        color: 'white',
+                        boxShadow: '4px 4px 8px #d1d1d1, -4px -4px 8px #ffffff'
+                      }}
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content
+                      className="bg-[#2D2D2D] text-white text-sm px-2 py-1 rounded"
+                      sideOffset={5}
+                    >
+                      Download your will
+                      <Tooltip.Arrow className="fill-[#2D2D2D]" />
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+              )}
+              
+              {profile?.will_downloaded && (
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <button 
+                      onClick={() => toast.info('Upload functionality coming soon!')} 
+                      className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                      style={{
+                        background: 'linear-gradient(145deg, #0047AB, #D4AF37)',
+                        color: 'white',
+                        boxShadow: '4px 4px 8px #d1d1d1, -4px -4px 8px #ffffff'
+                      }}
+                    >
+                      <Upload className="w-4 h-4" />
+                    </button>
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content
+                      className="bg-[#2D2D2D] text-white text-sm px-2 py-1 rounded"
+                      sideOffset={5}
+                    >
+                      Upload signed will for safe storage
+                      <Tooltip.Arrow className="fill-[#2D2D2D]" />
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+              )}
+            </Tooltip.Provider>
+          </div>
         </div>
         <div className="flex flex-col items-center justify-center">
           <CircularProgress value={calculatedScore} />
-            <div className="text-sm text-[#2D2D2D]/60 text-center guidance-message">
-              <Tooltip.Provider>
-                {calculatedScore === 100 && (
-                  <Tooltip.Root>
-                    <Tooltip.Trigger asChild>
-                      <button 
-                        onClick={downloadWillInPdf} 
-                        className="download-will-button"
-                      >
-                        <Download className="w-4 h-4" />
-                      </button>
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content
-                        className="bg-[#2D2D2D] text-white text-sm px-2 py-1 rounded"
-                        sideOffset={5}
-                      >
-                        Download your will
-                        <Tooltip.Arrow className="fill-[#2D2D2D]" />
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip.Root>
-                )}
-              </Tooltip.Provider>
-              {currentStep 
-                ? currentStep.description
-                : "You've completed your will and secured your legacy."}
-            </div>
+            <GuidanceMessage 
+              message={currentStep ? currentStep.description : "You've completed your will and secured your legacy."}
+            />
         </div>
         <div className="mt-6 pt-4 progress-divider">
           <ProgressSteps 

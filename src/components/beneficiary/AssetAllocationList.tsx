@@ -10,6 +10,7 @@ interface AssetAllocationListProps {
   selectedMembers: FamilyMember[];
   manualBeneficiaries: any[];
   assetAllocations: Record<string, Record<string, number>>;
+  editMode: boolean;
   unsavedChanges: Set<string>;
   onSlideChange: (index: number) => void;
   onAllocationChange: (assetId: string, beneficiaryId: string, percentage: number) => void;
@@ -26,6 +27,7 @@ export function AssetAllocationList({
   selectedMembers,
   manualBeneficiaries,
   onSlideChange,
+  editMode,
   assetAllocations,
   unsavedChanges,
   onAllocationChange,
@@ -34,6 +36,11 @@ export function AssetAllocationList({
 }: AssetAllocationListProps) {
   const [activeIndex, setActiveIndex] = React.useState(0);
   const swiperRef = React.useRef<SwiperInstance | null>(null);
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   if (loading) {
     return (
@@ -53,60 +60,62 @@ export function AssetAllocationList({
 
   return (
     <div className="asset-carousel -mt-12">
-      <Swiper
-        onSwiper={(swiper) => {
-          swiperRef.current = swiper;
-          swiper.slideTo(activeIndex, 0);
-          onSlideChange(activeIndex);
-        }}
-        onActiveIndexChange={(swiper) => {
-          setActiveIndex(swiper.activeIndex);
-          onSlideChange(swiper.activeIndex);
-        }}
-        modules={[Pagination, Navigation, A11y]}
-        spaceBetween={16}
-        slidesPerView={1}
-        centeredSlides={true}
-        navigation={true}
-        pagination={{ 
-          clickable: true,
-          bulletActiveClass: 'swiper-pagination-bullet-active'
-        }}
-        breakpoints={{
-          640: {
-            slidesPerView: 1.5,
-          },
-          768: {
-            slidesPerView: 2,
-          }
-        }}
-        className="pb-8"
-      >
-        {assets.map((asset) => {
-          const allBeneficiaries = [...selectedMembers, ...manualBeneficiaries];
-          return (
-            <SwiperSlide key={asset.id}>
-              <AssetAllocationCard
-                asset={asset}
-                beneficiaries={allBeneficiaries}
-                allocations={assetAllocations[asset.id] || {}}
-                onAllocationChange={(beneficiaryId, percentage) => 
-                  onAllocationChange(asset.id, beneficiaryId, percentage)
-                }
-                onSave={async () => {
-                  await onSaveAllocations(asset.id);
-                  // Restore position after save
-                  if (swiperRef.current) {
-                    swiperRef.current.slideTo(activeIndex, 0);
+      {isClient && (
+        <Swiper
+          onSwiper={(swiper) => {
+            swiperRef.current = swiper;
+            swiper.slideTo(activeIndex, 0);
+            onSlideChange(activeIndex);
+          }}
+          onActiveIndexChange={(swiper) => {
+            setActiveIndex(swiper.activeIndex);
+            onSlideChange(swiper.activeIndex);
+          }}
+          modules={[Pagination, Navigation, A11y]}
+          spaceBetween={16}
+          slidesPerView={1}
+          centeredSlides={true}
+          navigation={true}
+          pagination={{ 
+            clickable: true,
+            bulletActiveClass: 'swiper-pagination-bullet-active'
+          }}
+          breakpoints={{
+            640: {
+              slidesPerView: 1.5,
+            },
+            768: {
+              slidesPerView: 2,
+            }
+          }}
+          className="pb-8"
+        >
+          {assets.map((asset) => {
+            const allBeneficiaries = [...selectedMembers, ...manualBeneficiaries];
+            return (
+              <SwiperSlide key={asset.id}>
+                <AssetAllocationCard
+                  asset={asset}
+                  beneficiaries={allBeneficiaries}
+                  editMode={editMode}
+                  allocations={assetAllocations[asset.id] || {}}
+                  onAllocationChange={(beneficiaryId, percentage) => 
+                    onAllocationChange(asset.id, beneficiaryId, percentage)
                   }
-                }}
-                loading={loading}
-                hasUnsavedChanges={unsavedChanges.has(asset.id)}
-              />
-            </SwiperSlide>
-          );
-        })}
-      </Swiper>
+                  onSave={async () => {
+                    await onSaveAllocations(asset.id);
+                    if (swiperRef.current) {
+                      swiperRef.current.slideTo(activeIndex, 0);
+                    }
+                  }}
+                  loading={loading}
+                  hasUnsavedChanges={unsavedChanges.has(asset.id)}
+                />
+              </SwiperSlide>
+            );
+          })}
+        </Swiper>
+      )}
     </div>
   );
 }

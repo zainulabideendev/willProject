@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Cross, Flame, MessageSquare, Users, Settings, Loader2 } from 'lucide-react';
+import { ArrowLeft, Cross, Flame, MessageSquare, Users, Settings, Loader2, Edit, Save } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { supabase } from '../lib/supabase';
 import { BurialOptions } from './burial/BurialOptions';
@@ -19,6 +19,7 @@ export function LastWishesScreen({ onNavigate }: LastWishesScreenProps) {
   const { profile, loading: profileLoading } = useProfile();
   const { updateProfile, loading: updateLoading } = useUpdateProfile();
   const { refetchScore } = useEstateScore(profile?.id);
+  const [editMode, setEditMode] = React.useState(false);
   const [activeSection, setActiveSection] = React.useState<NavSection>('burial');
   const [guardianSaved, setGuardianSaved] = React.useState(false);
   const [hasMinorChildren, setHasMinorChildren] = React.useState(false);
@@ -72,8 +73,21 @@ export function LastWishesScreen({ onNavigate }: LastWishesScreenProps) {
     }
   }, [profile]);
 
+  // Set initial edit mode based on whether user has completed this step
+  React.useEffect(() => {
+    if (profile) {
+      setEditMode(!profile.last_wishes_documented);
+    }
+  }, [profile]);
+
   const handleCompleteStep = async () => {
     if (!profile) return;
+    
+    // If user has already completed this step, just navigate back to dashboard
+    if (profile.last_wishes_documented) {
+      onNavigate('dashboard');
+      return;
+    }
     
     try {
       // Update profile last_wishes_documented flag
@@ -94,6 +108,16 @@ export function LastWishesScreen({ onNavigate }: LastWishesScreenProps) {
     }
   };
 
+  const handleEditSaveToggle = async () => {
+    if (editMode) {
+      // If in edit mode, save changes
+      setEditMode(false);
+    } else {
+      // If not in edit mode, switch to edit mode
+      setEditMode(true);
+    }
+  };
+
   if (profileLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -107,12 +131,28 @@ export function LastWishesScreen({ onNavigate }: LastWishesScreenProps) {
       <Toaster position="top-right" expand={false} richColors />
       <div className="flex items-center mb-6">
         <button
-          onClick={() => onNavigate('dashboard')}
+          onClick={() => {
+            onNavigate('dashboard');
+          }}
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
           <ArrowLeft className="w-6 h-6 text-[#2D2D2D]" />
         </button>
-        <h1 className="text-lg font-semibold text-[#2D2D2D] ml-2">Document Last Wishes</h1>
+        <div className="flex items-center justify-between flex-1">
+          <h1 className="text-lg font-semibold text-[#2D2D2D] ml-2">Document Last Wishes</h1>
+          {profile?.last_wishes_documented && (
+            <button
+              onClick={handleEditSaveToggle}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              {editMode ? (
+                <Save className="w-5 h-5 text-[#0047AB]" />
+              ) : (
+                <Edit className="w-5 h-5 text-[#0047AB]" />
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       <nav className="last-wishes-nav">
@@ -148,6 +188,7 @@ export function LastWishesScreen({ onNavigate }: LastWishesScreenProps) {
       
       {activeSection === 'burial' && profile && (
         <BurialOptions 
+          editMode={editMode}
           profileId={profile.id}
           burialType={profile.burial_type}
         />
@@ -155,6 +196,7 @@ export function LastWishesScreen({ onNavigate }: LastWishesScreenProps) {
       
       {activeSection === 'memorial' && profile && (
         <MemorialOptions 
+          editMode={editMode}
           profileId={profile.id}
           memorialType={profile.memorial_type}
           memorialMessage={profile.memorial_message}
@@ -163,6 +205,7 @@ export function LastWishesScreen({ onNavigate }: LastWishesScreenProps) {
       
       {activeSection === 'message' && profile && (
         <LastMessage
+          editMode={editMode}
           profileId={profile.id}
           message={profile.last_message}
         />
@@ -170,6 +213,7 @@ export function LastWishesScreen({ onNavigate }: LastWishesScreenProps) {
       
       {activeSection === 'guardian' && profile && (
         <GuardianSection
+          editMode={editMode}
           profileId={profile.id}
           onGuardianSaved={() => setGuardianSaved(true)}
           guardian_title={profile.guardian_title}
@@ -185,10 +229,12 @@ export function LastWishesScreen({ onNavigate }: LastWishesScreenProps) {
       <button
         onClick={handleCompleteStep}
         disabled={updateLoading || (hasMinorChildren && !guardianSaved)}
-        className="complete-step-button"
+        className="complete-step-button" 
       >
         {updateLoading ? (
           <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+        ) : profile?.last_wishes_documented ? (
+          'Back to Dashboard'
         ) : (
           'Complete Step 4'
         )}

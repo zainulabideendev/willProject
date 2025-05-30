@@ -9,6 +9,7 @@ interface AllocationSectionProps {
   selectedMembers: FamilyMember[];
   manualBeneficiaries: any[];
   assetAllocations: Record<string, Record<string, number>>;
+  editMode: boolean;
   unsavedChanges: Set<string>;
   onAllocationChange: (assetId: string, beneficiaryId: string, percentage: number) => void;
   onSaveAllocations: (assetId: string) => void;
@@ -20,6 +21,7 @@ export function AllocationSection({
   selectedMembers,
   manualBeneficiaries,
   assetAllocations,
+  editMode,
   unsavedChanges,
   onAllocationChange,
   onSaveAllocations,
@@ -41,6 +43,7 @@ export function AllocationSection({
         onSlideChange={handleSlideChange}
         selectedMembers={selectedMembers}
         manualBeneficiaries={manualBeneficiaries}
+        editMode={editMode}
         assetAllocations={assetAllocations}
         unsavedChanges={unsavedChanges}
         onAllocationChange={onAllocationChange}

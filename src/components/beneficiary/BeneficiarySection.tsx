@@ -10,18 +10,11 @@ interface BeneficiarySectionProps {
   familyMembers: FamilyMember[];
   selectedMembers: FamilyMember[];
   manualBeneficiaries: any[];
-  manualForm: {
-    title: string;
-    first_names: string;
-    last_name: string;
-    id_number: string;
-    relationship: string;
-    phone: string;
-  };
-  onManualFormChange: (updates: any) => void;
+  profileId: string;
+  editMode: boolean;
   onAddFamilyMember: (member: FamilyMember) => void;
   onDeleteBeneficiary: (beneficiary: any, isFamily: boolean) => void;
-  onManualSubmit: (e: React.FormEvent) => void;
+  onBeneficiarySaved: () => Promise<void>;
   loading: boolean;
 }
 
@@ -31,11 +24,11 @@ export function BeneficiarySection({
   familyMembers,
   selectedMembers,
   manualBeneficiaries,
-  manualForm,
-  onManualFormChange,
+  profileId,
+  editMode,
   onAddFamilyMember,
   onDeleteBeneficiary,
-  onManualSubmit,
+  onBeneficiarySaved,
   loading
 }: BeneficiarySectionProps) {
   return (
@@ -50,21 +43,25 @@ export function BeneficiarySection({
       <BeneficiaryToggle mode={addMode} onModeChange={onModeChange} />
 
       {addMode === 'family' ? (
-        <BeneficiaryList
-          familyMembers={familyMembers}
-          selectedMembers={selectedMembers}
-          manualBeneficiaries={manualBeneficiaries}
-          onAddFamilyMember={onAddFamilyMember}
-          onDeleteBeneficiary={onDeleteBeneficiary}
-          loading={loading}
-        />
+        <div className={editMode ? '' : 'pointer-events-none opacity-70'}>
+          <BeneficiaryList
+            familyMembers={familyMembers}
+            selectedMembers={selectedMembers}
+            manualBeneficiaries={manualBeneficiaries}
+            onAddFamilyMember={onAddFamilyMember}
+            onDeleteBeneficiary={onDeleteBeneficiary}
+            loading={loading}
+          />
+        </div>
       ) : (
-        <ManualBeneficiaryForm
-          formData={manualForm}
-          onChange={onManualFormChange}
-          onSubmit={onManualSubmit}
-          loading={loading}
-        />
+        <div className={editMode ? '' : 'pointer-events-none opacity-70'}>
+          <ManualBeneficiaryForm
+            profileId={profileId}
+            onBeneficiarySaved={onBeneficiarySaved}
+            loading={loading}
+            editMode={editMode}
+          />
+        </div>
       )}
     </>
   );

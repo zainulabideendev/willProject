@@ -7,6 +7,7 @@ import './BurialOptions.css';
 
 interface BurialOptionsProps {
   profileId: string;
+  editMode?: boolean;
   burialType?: string;
 }
 
@@ -37,7 +38,7 @@ const burialOptions = [
   }
 ];
 
-export function BurialOptions({ profileId, burialType: initialBurialType }: BurialOptionsProps) {
+export function BurialOptions({ profileId, editMode = true, burialType: initialBurialType }: BurialOptionsProps) {
   // Initialize state from localStorage or prop
   const [burialType, setBurialType] = React.useState<string | undefined>(() => {
     const savedType = localStorage.getItem(`burial-type-${profileId}`);
@@ -80,9 +81,14 @@ export function BurialOptions({ profileId, burialType: initialBurialType }: Buri
         <div className="burial-options-container">
           {burialOptions.map((option) => (
             <button
+              disabled={!editMode}
               key={option.id}
               onClick={() => handleBurialTypeChange(option.id)}
-              className={`burial-option ${option.id === burialType ? 'selected' : ''} relative`}
+              className={`burial-option ${option.id === burialType ? 'selected' : ''} relative`} 
+              style={{
+                opacity: !editMode ? 0.7 : 1,
+                cursor: !editMode ? 'not-allowed' : 'pointer'
+              }}
             >
               <div className="burial-option-content">
                 <span className="burial-option-label">{option.label}</span>
@@ -122,8 +128,13 @@ export function BurialOptions({ profileId, burialType: initialBurialType }: Buri
         </div>
         <button
           onClick={handleSavePreference}
+          disabled={!editMode}
           className="save-preference-button"
-          disabled={!burialType}
+          disabled={!burialType || !editMode}
+          style={{
+            opacity: (!burialType || !editMode) ? 0.5 : 1,
+            cursor: (!burialType || !editMode) ? 'not-allowed' : 'pointer'
+          }}
         >
           Save Preference
         </button>
