@@ -15,17 +15,17 @@ try {
   throw new Error(`Invalid Supabase URL format: ${supabaseUrl}`);
 }
 
-// Enhanced retry configuration
-const MAX_RETRIES = 3;
-const BASE_DELAY = 1000;
-const MAX_DELAY = 5000;
-const FETCH_TIMEOUT = 30000;
+// Enhanced retry configuration with more reasonable values
+const MAX_RETRIES = 5;
+const BASE_DELAY = 500; // Reduced from 1000ms to 500ms
+const MAX_DELAY = 3000; // Reduced from 5000ms to 3000ms
+const FETCH_TIMEOUT = 10000; // Reduced from 30000ms to 10000ms
 
-// Check if URL is accessible
+// Enhanced URL accessibility check with better error handling
 async function isUrlAccessible(url: string): Promise<boolean> {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // Reduced timeout
 
     try {
       const response = await fetch(`${url}/rest/v1/`, {
@@ -34,7 +34,11 @@ async function isUrlAccessible(url: string): Promise<boolean> {
         headers: {
           'apikey': supabaseAnonKey,
           'Content-Type': 'application/json'
-        }
+        },
+        // Add cache control to prevent stale responses
+        cache: 'no-cache',
+        // Add credentials mode for CORS
+        credentials: 'include'
       });
       return response.ok;
     } finally {
@@ -46,7 +50,7 @@ async function isUrlAccessible(url: string): Promise<boolean> {
   }
 }
 
-// Enhanced fetch with exponential backoff, jitter, and timeout
+// Enhanced fetch with better error handling and retry logic
 async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   let lastError: Error | null = null;
   
@@ -58,15 +62,9 @@ async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Pro
     throw new Error(`Invalid URL: ${url}`);
   }
 
-  // Basic online check
+  // Enhanced online check with connection quality assessment
   if (!navigator.onLine) {
     throw new Error('No internet connection available');
-  }
-
-  // Check if Supabase URL is accessible before proceeding
-  const isAccessible = await isUrlAccessible(supabaseUrl);
-  if (!isAccessible) {
-    throw new Error(`Unable to connect to Supabase at ${supabaseUrl}. Please check your configuration and try again.`);
   }
 
   // Initialize headers with the required Supabase headers
@@ -77,6 +75,10 @@ async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Pro
   if (!headers.has('apikey') && !headers.has('Authorization')) {
     headers.set('apikey', supabaseAnonKey);
   }
+
+  // Add cache control headers
+  headers.set('Cache-Control', 'no-cache');
+  headers.set('Pragma', 'no-cache');
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
@@ -91,8 +93,8 @@ async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Pro
           ...init,
           headers,
           signal: controller.signal,
-          // Add credentials mode for CORS
-          credentials: 'include'
+          credentials: 'include',
+          cache: 'no-cache'
         });
 
         // Check for specific HTTP status codes that warrant retries
@@ -124,13 +126,13 @@ async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Pro
     } catch (error) {
       console.warn(`Fetch attempt ${attempt} failed:`, error);
       
-      // Enhanced error handling
+      // Enhanced error handling with more specific messages
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          lastError = new Error('Request timeout - server took too long to respond');
+          lastError = new Error(`Request timeout after ${FETCH_TIMEOUT}ms - server took too long to respond`);
         } else if (error.name === 'TypeError') {
           if (error.message.includes('Failed to fetch')) {
-            lastError = new Error(`Network error - Unable to connect to Supabase at ${supabaseUrl}. Please check your configuration and try again.`);
+            lastError = new Error(`Network error - Unable to connect to Supabase at ${supabaseUrl}. Please check your internet connection and try again.`);
           } else {
             lastError = error;
           }
@@ -181,13 +183,17 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storageKey: 'willup-auth'
   },
   headers: {
-    'X-Client-Info': 'willup-web'
+    'X-Client-Info': 'willup-web',
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache'
   },
   global: {
     fetch: fetchWithRetry,
     headers: {
       'Content-Type': 'application/json',
-      'apikey': supabaseAnonKey
+      'apikey': supabaseAnonKey,
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache'
     }
   }
 });
