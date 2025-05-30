@@ -92,7 +92,7 @@ async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Pro
           headers,
           signal: controller.signal,
           // Add credentials mode for CORS
-          credentials: 'include'
+          credentials: 'same-origin'
         });
 
         // Check for specific HTTP status codes that warrant retries
