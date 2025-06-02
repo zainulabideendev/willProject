@@ -36,7 +36,7 @@ export function useProfile() {
             'apikey': supabaseAnonKey,
             'Content-Type': 'application/json'
           },
-          mode: 'cors' // Explicitly set CORS mode
+          mode: 'cors'
         });
         return response.ok;
       } catch (error) {
@@ -85,88 +85,36 @@ export function useProfile() {
           throw new Error('Invalid user ID format. Please sign out and sign in again.');
         }
 
+        // Wait briefly to allow the database trigger to complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
-          .maybeSingle();
+          .single();
 
         if (profileError) {
-          if (profileError.code === '42501') {
-            const { data: newProfile, error: insertError } = await supabase
+          if (profileError.code === 'PGRST116') {
+            // Profile not found, wait and retry once
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            const { data: retryData, error: retryError } = await supabase
               .from('profiles')
-              .insert([{ id: user.id }])
-              .select();
+              .select('*')
+              .eq('id', user.id)
+              .single();
 
-            if (insertError) {
-              if (insertError.code === '23505') {
-                const { data: retryData, error: retryError } = await supabase
-                  .from('profiles')
-                  .select()
-                  .eq('id', user.id)
-                  .maybeSingle();
+            if (retryError) throw retryError;
+            if (!retryData) throw new Error('Profile not found after retry');
 
-                if (retryError) throw retryError;
-                if (!retryData) throw new Error('Profile not found after retry');
-
-                if (isSubscribed) {
-                  setProfile(retryData as Profile);
-                  setError(null);
-                  setLoading(false);
-                }
-                return;
-              }
-              throw insertError;
-            }
-
-            if (newProfile && newProfile.length > 0) {
-              if (isSubscribed) {
-                setProfile(newProfile[0] as Profile);
-                setError(null);
-                setLoading(false);
-              }
-              return;
-            }
-          } else {
-            throw profileError;
-          }
-        }
-
-        if (!profileData) {
-          const { data: newProfile, error: insertError } = await supabase
-            .from('profiles')
-            .insert([{ id: user.id }])
-            .select();
-
-          if (insertError) {
-            if (insertError.code === '23505') {
-              const { data: retryData, error: retryError } = await supabase
-                .from('profiles')
-                .select()
-                .eq('id', user.id)
-                .maybeSingle();
-
-              if (retryError) throw retryError;
-              if (!retryData) throw new Error('Profile not found after retry');
-
-              if (isSubscribed) {
-                setProfile(retryData as Profile);
-                setError(null);
-                setLoading(false);
-              }
-              return;
-            }
-            throw insertError;
-          }
-
-          if (newProfile && newProfile.length > 0) {
             if (isSubscribed) {
-              setProfile(newProfile[0] as Profile);
+              setProfile(retryData as Profile);
               setError(null);
               setLoading(false);
             }
             return;
           }
+          throw profileError;
         }
 
         if (isSubscribed) {
