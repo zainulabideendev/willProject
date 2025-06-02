@@ -52,6 +52,9 @@ export function useProfile() {
 
   useEffect(() => {
     let isSubscribed = true;
+    let retryCount = 0;
+    const maxRetries = 3;
+    const retryDelay = 2000; // 2 seconds
 
     async function fetchProfile() {
       try {
@@ -85,36 +88,38 @@ export function useProfile() {
           throw new Error('Invalid user ID format. Please sign out and sign in again.');
         }
 
-        // Wait briefly to allow the database trigger to complete
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
+        // Initial attempt to fetch profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (profileError) {
-          if (profileError.code === 'PGRST116') {
-            // Profile not found, wait and retry once
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            const { data: retryData, error: retryError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', user.id)
-              .single();
+        if (profileError) throw profileError;
 
-            if (retryError) throw retryError;
-            if (!retryData) throw new Error('Profile not found after retry');
+        // If no profile found, implement retry logic
+        if (!profileData && retryCount < maxRetries) {
+          retryCount++;
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          
+          const { data: retryData, error: retryError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
 
-            if (isSubscribed) {
-              setProfile(retryData as Profile);
-              setError(null);
-              setLoading(false);
-            }
-            return;
+          if (retryError) throw retryError;
+          
+          if (!retryData && retryCount === maxRetries) {
+            throw new Error('Profile not found after multiple attempts. Please try refreshing the page.');
           }
-          throw profileError;
+
+          if (isSubscribed && retryData) {
+            setProfile(retryData as Profile);
+            setError(null);
+            setLoading(false);
+          }
+          return;
         }
 
         if (isSubscribed) {
